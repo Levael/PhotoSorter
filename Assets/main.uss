@@ -1,0 +1,131 @@
+/* MAIN & COMMON */
+
+#wrapper {
+    width: 100%;
+    height: 100%;
+    background-color: #2F2F2F; /* dark gray */
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    margin: 0;
+}
+
+#close-app-btn {
+    font-size: 16px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    /*width: 20px;
+    height: 20px;
+    background-color: yellow;*/
+}
+
+.folder-btn-text, .folder-btn-number, #instructions-textbox {
+    background-color: #666666; /* light gray */
+}
+
+#instructions-textbox, #photo-info {
+    background-color: #474747; /* gray */
+}
+
+TextElement {
+    color: #E3E3E3; /* whitish */
+}
+
+.good-status {
+    background-color: #5580ED;
+}
+
+.bad-status {
+    background-color: #FC5858;
+}
+
+/* LEFT (CONTROLS) */
+#controls-section {
+    display: flex;
+    width: 25%;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-right: 5px;
+}
+
+#folders-btns {
+    width: 100%;
+    height: 70%;
+    justify-content: space-between;
+}
+
+#choose-sorting-folder-btn {
+    margin-bottom: 10%;
+}
+
+.destination-folder {
+    width: 100%;
+    height: 7%;
+    display: flex;
+    flex-direction: row;
+}
+
+.folder-btn-text {
+    height: 100%;
+    width: 90%;
+    font-size: 12px;
+    -unity-text-align: middle-left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.folder-btn-number {
+    height: 100%;
+    width: 10%;
+    font-size: 18px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    transition: background-color 250ms ease-in-out;
+}
+
+#instructions {
+    width: 100%;
+    height: 20%;
+}
+
+#instructions-textbox {
+    width: 100%;
+    height: 100%;
+    padding: 7px;
+    font-size: 12px;
+}
+
+
+/* RIGHT (PHOTO) */
+#photo-section {
+    display: flex;
+    width: 75%;
+    height: 100%;
+    background-color: lime;
+    flex-direction: column;
+}
+
+#photo-info {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 8%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5px;
+}
+
+#photo-info-name {}
+#photo-info-date {}
+#photo-info-size {}
+
+#photo-image {
+    background-color: black;
+    width: 100%;
+    height: 92%;
+}
+
+#image {
+
+}
