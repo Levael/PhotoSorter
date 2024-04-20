@@ -65,7 +65,7 @@
         </VisualElement>
 
         <VisualElement name="instructions">
-            <TextElement name="instructions-textbox" text="fjhgsfdgsfhdg"/>
+            <TextElement name="instructions-textbox" text=""/>
         </VisualElement>
     </VisualElement>
 
