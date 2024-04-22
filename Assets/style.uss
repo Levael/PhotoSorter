@@ -1,0 +1,330 @@
+/* MAIN & COMMON */
+
+:root {
+	--window-color				:	#2F2F2F;    /* dark gray */
+    --text-panels-color         :   #474747;    /* gray */
+
+	--main-font-color			:	#E3E3E3;    /* whitish */
+	--secondary-font-color		:	#A5A5A5;    /* weak light gray */
+
+	--buttons-color			    :	#666666;    /* light gray */
+	--buttons-hover-color		:	#747474;
+	--buttons-disabled-color    :	#4f4f4f;
+	--buttons-active-color		:	#B9CDFF;
+
+    --button-number-color       :   #474747;    /* gray */
+
+    --image-border-color        :   #E3E3E3;    /* whitish */
+
+	--good-status-color			:	#3CDF43;    /* green */
+	--bad-status-color			:	#FC5858;    /* red */
+	--warning-status-color		:	#FCBA58;    /* orange */
+}
+
+#wrapper {
+    width: 100%;
+    height: 100%;
+    background-color: var(--window-color);
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    margin: 0;
+}
+
+TextElement {
+    color: var(--main-font-color);
+}
+
+.good-status {
+    background-color: var(--good-status-color);
+}
+
+.bad-status {
+    background-color: var(--bad-status-color);
+}
+
+.warning-status {
+    background-color: var(--warning-status-color);
+}
+
+.section-label {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-top: 1px;
+    margin-right: 3px;
+    color: var(--secondary-font-color);
+    font-size: 11px;
+}
+
+
+/* CLOSE APP BUTTON */
+
+#close-app-btn {
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    border-radius: 5px;
+    overflow: hidden;
+    top: 0;
+    right: 0;
+    margin: 5px;
+}
+
+#close-app-btn Image {
+    background-image: url('/Assets/Images/close-app-icon.png');
+
+	background-size: contain;
+	background-repeat: no-repeat;
+    background-position: center center;
+    width: 100%;
+    height: 100%;
+}
+
+
+/* LEFT SIDE (CONTROLS) */
+
+#controls-section {
+    display: flex;
+    width: 25%;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-right: 10px;
+}
+
+#instructions-section, #folders-section, #info-section {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#instructions-section, #info-section {
+    padding-top: 15px;
+    background-color: var(--text-panels-color);
+}
+
+#instructions-section {
+    height: 22%;
+    padding-left: 3px;
+}
+
+#folders-section {
+    height: 63%;
+}
+
+#info-section {
+    height: 15%;
+}
+
+/* instructions-section */
+
+#instructions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height: 80%;
+    flex-direction: column;
+}
+
+.instruction {
+    font-size: 15px;
+}
+
+
+
+#checkboxes {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height: 20%;
+    flex-direction: row;
+}
+
+#checkboxes Toggle Label {
+    color: var(--main-font-color);
+    padding-left: 5px;
+    margin: 0;
+}
+
+#checkboxes Toggle #unity-checkmark {
+    border-width: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 2px;
+}
+
+/* folders-section */
+
+#source-folder, .destination-folder {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 10px;
+}
+
+.folder-path-wrapper {
+    width: 90%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2px 0 2px 3px;
+    background-color: var(--buttons-color);
+}
+
+#source-folder-icon, .folder-number {
+    width: 10%;
+    height: 100%;
+    background-color: var(--button-number-color);
+}
+
+.folder-path-without-name, .folder-name {
+    -unity-text-align: middle-left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.folder-path-without-name {
+    font-size: 12px;
+}
+
+.folder-name {
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+
+
+#source-folder {
+    margin-top: 10px;
+}
+
+#source-folder-icon {
+    background-image: url('/Assets/Images/source-folder-icon.png');
+
+	background-size: contain;
+	background-repeat: no-repeat;
+    background-position: center center;
+}
+
+
+
+#destination-folders {}
+
+.destination-folder {}
+
+.folder-number {
+    font-size: 20px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    transition: background-color 250ms ease-in-out;
+}
+
+/* info-section */
+
+#photo-details, #console-message {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+
+
+#photo-details {
+    flex-direction: row;
+    
+    border-bottom-width: 3px;
+    border-bottom-color: var(--window-color);
+}
+
+#photo-details-labels, #photo-details-data {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding-left: 3px;
+}
+
+#photo-details-labels TextElement, #photo-details-data TextElement {
+    -unity-text-align: middle-left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-size: 16px;
+}
+
+#photo-details-labels {
+    width: 18%;
+}
+
+#photo-details-data {
+    width: 82%;
+    padding-right: 3px;
+    -unity-font-style: bold;
+}
+
+
+
+#console-message {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
+    /* padding-top: 10px; */
+    padding-left: 3px;
+}
+
+#console-message TextElement {
+    -unity-text-align: middle-left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-size: 16px;
+}
+
+#console-message-label {
+    height: 30%;
+}
+
+#console-message-data {
+    padding-right: 3px;
+    -unity-font-style: bold;
+    height: 70%;
+}
+
+
+
+/* RIGHT SIDE (PHOTO) */
+
+#photo-section {
+    display: flex;
+    width: 75%;
+    height: 100%;
+    background-color: var(--text-panels-color);
+}
+
+#main-image {}
+
+#background-image {}
+
+
+
+.image-border-up-down, .image-border-left-right {
+    -unity-overflow-clip-box: content-box;  /* todo: check it */
+    border-color: var(--image-border-color);
+}
+
+.image-border-up-down {
+    border-top-width: 10px;
+    border-bottom-width: 10px;
+
+    border-left-width: 0;
+    border-right-width: 0;
+}
+
+.image-border-left-right {
+    border-top-width: 0;
+    border-bottom-width: 0;
+
+    border-left-width: 10px;
+    border-right-width: 10px;
+}

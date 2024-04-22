@@ -33,7 +33,7 @@ namespace SFB {
         /// <param name="directory">Root directory</param>
         /// <param name="extension">Allowed extension</param>
         /// <param name="multiselect">Allow multiple file selection</param>
-        /// <returns>Returns array of chosen paths. Zero length array when cancelled</returns>
+        /// <returns>Returns destinationFolderFullNames of chosen paths. Zero length destinationFolderFullNames when cancelled</returns>
         public static string[] OpenFilePanel(string title, string directory, string extension, bool multiselect) {
             var extensions = string.IsNullOrEmpty(extension) ? null : new [] { new ExtensionFilter("", extension) };
             return OpenFilePanel(title, directory, extensions, multiselect);
@@ -46,7 +46,7 @@ namespace SFB {
         /// <param name="directory">Root directory</param>
         /// <param name="extensions">List of extension filters. Filter Example: new ExtensionFilter("Image Files", "jpg", "png")</param>
         /// <param name="multiselect">Allow multiple file selection</param>
-        /// <returns>Returns array of chosen paths. Zero length array when cancelled</returns>
+        /// <returns>Returns destinationFolderFullNames of chosen paths. Zero length destinationFolderFullNames when cancelled</returns>
         public static string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect) {
             return _platformWrapper.OpenFilePanel(title, directory, extensions, multiselect);
         }
@@ -83,7 +83,7 @@ namespace SFB {
         /// <param name="title"></param>
         /// <param name="directory">Root directory</param>
         /// <param name="multiselect"></param>
-        /// <returns>Returns array of chosen paths. Zero length array when cancelled</returns>
+        /// <returns>Returns destinationFolderFullNames of chosen paths. Zero length destinationFolderFullNames when cancelled</returns>
         public static string[] OpenFolderPanel(string title, string directory, bool multiselect) {
             return _platformWrapper.OpenFolderPanel(title, directory, multiselect);
         }

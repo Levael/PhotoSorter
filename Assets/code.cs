@@ -9,15 +9,15 @@ using System.Reflection;
 using SFB;
 using System.Linq;
 
-public class main : MonoBehaviour
+public class Main : MonoBehaviour
 {
     private Config config;
     private string currentFolderPath;
-    private string currentPhotoPath;
+    private string currentPhotoFullPath;
     private Image uiImageElement;
-    private Queue<string> imagesBlob;
+    private Queue<string> imagesBlob = new();
 
-    private string _configFilePath;
+    private string _configFilePath = "Assets/last_selected_folders.json";
     private VisualElement _uiRoot;
     private Dictionary<int, string> _keyCodeToFolderPath;
     private Dictionary<string, string> _uiNameToFolderPath;
@@ -27,11 +27,7 @@ public class main : MonoBehaviour
 
     void Awake()
     {
-        _configFilePath = "Assets/last_selected_folders.json";
-        config = new();
-        config = ReadConfig(_configFilePath);
-
-        imagesBlob = new();
+        config = LoadDataFromJson(_configFilePath);
 
         _keyCodeToFolderPath = new() {
             { 49, "DestinationFolderForKey_1" },
@@ -73,7 +69,7 @@ public class main : MonoBehaviour
             _uiRoot.Q<VisualElement>(item.Key).RegisterCallback<ClickEvent>(ChoosePathForFolder);
         }
 
-        uiImageElement = _uiRoot.Q<Image>("image");
+        uiImageElement = _uiRoot.Q<Image>("main-image");
     }
 
     void Start()
@@ -95,7 +91,7 @@ public class main : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        WriteConfig(_configFilePath, config);
+        UpdateDataInJson(_configFilePath, config);
     }
 
 
@@ -122,6 +118,7 @@ public class main : MonoBehaviour
         if (clickedBtnName == "choose-sorting-folder-btn")
         {
             currentFolderPath = config.FolderToSort;
+            imagesBlob.Clear();
             DisplayNextImage();
         }
     }
@@ -132,7 +129,7 @@ public class main : MonoBehaviour
         btnText.text = text;
     }
 
-    private Config? ReadConfig(string filePath)
+    private Config? LoadDataFromJson(string filePath)
     {
         try
         {
@@ -153,7 +150,7 @@ public class main : MonoBehaviour
     }
 
     // still somethimes writes "null" into file
-    void WriteConfig(string filePath, Config config)
+    void UpdateDataInJson(string filePath, Config config)
     {
         try
         {
@@ -207,17 +204,31 @@ public class main : MonoBehaviour
 
     private void MoveFileToFolder(string configFieldName)
     {
-        var folderPath = GetFieldValue(config, configFieldName).ToString();
-
-        if (folderPath == null)
+        var destinationFolderPath = GetFieldValue(config, configFieldName).ToString();
+        if (destinationFolderPath == null)
         {
             Debug.Log("not binded yet");
             return;
         }
 
+        var photoNameOnly = Path.GetFileName(currentPhotoFullPath);
+        var destinationFullPath = Path.Combine(destinationFolderPath, photoNameOnly);
+
+
+        try
+        {
+            File.Move(currentPhotoFullPath, destinationFullPath);
+            DisplayNextImage();
+            Debug.Log($"moved");
+        }
+        catch (IOException ex)
+        {
+            Debug.Log($"not moved");
+        }
+
         // move file
         // load next img
-        Debug.Log(folderPath);
+        //Debug.Log($"destinationFolderPath: {destinationFolderPath}, photoNameOnly: {photoNameOnly}, destinationFullPath: {destinationFullPath}");
     }
 
     private void UpdateUi()
@@ -266,8 +277,6 @@ public class main : MonoBehaviour
 
     private void LoadBunchOfImages(string folderPath)
     {
-        Debug.Log($"LoadBunchOfImages: {folderPath}");
-
         string[] imageExtensions = new string[] { "*.jpg", "*.jpeg", "*.png", "*.bmp", "*.gif" };
         imagesBlob = new Queue<string>(imageExtensions.SelectMany(ext => Directory.GetFiles(folderPath, ext)).Take(10));
     }
@@ -279,11 +288,10 @@ public class main : MonoBehaviour
             LoadBunchOfImages(currentFolderPath);
         }
 
-        currentPhotoPath = imagesBlob.Dequeue();
-        Debug.Log($"currentPhotoPath: {currentPhotoPath}");
+        // add try catch
+        currentPhotoFullPath = imagesBlob.Dequeue();
 
-
-        Texture2D texture = LoadTextureFromFile(currentPhotoPath);
+        Texture2D texture = LoadTextureFromFile(currentPhotoFullPath);
         Sprite sprite = CreateSpriteFromTexture(texture);
 
         if (sprite != null && uiImageElement != null)
@@ -333,4 +341,24 @@ public class Config
     public string DestinationFolderForKey_8;
     public string DestinationFolderForKey_9;
     public string DestinationFolderForKey_0;
+}
+
+
+public class DirectoryConfigurator
+{
+    public string sourceFolderFullName;
+    public string[] destinationFolderFullNames;
+
+    private Dictionary<int, int> _keyCodeToFolderNumberMap;
+
+
+
+    public DirectoryConfigurator()
+    {
+        destinationFolderFullNames = new string[10];
+
+        _keyCodeToFolderNumberMap = new() {
+            { 49, 1 }, { 50, 2 }, { 51, 3 }, { 52, 4 }, { 53, 5 }, { 54, 6 }, { 55, 7 }, { 56, 8 }, { 57, 9 }, { 48, 0 }
+        };
+    }
 }
