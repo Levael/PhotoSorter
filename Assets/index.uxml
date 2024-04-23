@@ -163,10 +163,8 @@
     </VisualElement>
 
     <VisualElement name="photo-section">
-
-        <Image name="main-image" scale-mode="ScaleToFit" />
-        <Image name="background-image" scale-mode="ScaleToFill" />
-
+        <Image name="main-image" class="image-border-up-down"/>
+        <Image name="background-image"/>
     </VisualElement>
 
     <VisualElement name="close-app-btn">

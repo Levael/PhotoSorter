@@ -27,7 +27,7 @@ public class Main : MonoBehaviour
 
     void Awake()
     {
-        config = LoadDataFromJson(_configFilePath);
+        /*config = LoadDataFromJson(_configFilePath);
 
         _keyCodeToFolderPath = new() {
             { 49, "DestinationFolderForKey_1" },
@@ -69,30 +69,86 @@ public class Main : MonoBehaviour
             _uiRoot.Q<VisualElement>(item.Key).RegisterCallback<ClickEvent>(ChoosePathForFolder);
         }
 
-        uiImageElement = _uiRoot.Q<Image>("main-image");
+        uiImageElement = _uiRoot.Q<Image>("main-image");*/
     }
 
     void Start()
     {
-        UpdateUi();
+        /*UpdateUi();
 
         if (config.FolderToSort != null)
         {
             currentFolderPath = config.FolderToSort;
             DisplayNextImage();
-        }
+        }*/
+        StartCoroutine(InitializeUIAfterFrame());
+
         
     }
 
     void Update()
     {
-        
+        var screenSizeText = GetComponent<UIDocument>().rootVisualElement.Q<TextElement>("console-message-data");
+        screenSizeText.text = "Screen Width: " + Screen.width + "px, Screen Height: " + Screen.height + "px";
     }
 
     void OnApplicationQuit()
     {
-        UpdateDataInJson(_configFilePath, config);
+        //UpdateDataInJson(_configFilePath, config);
     }
+
+    IEnumerator InitializeUIAfterFrame()
+    {
+        yield return null;
+        SetupUI();
+    }
+
+    void SetupUI()
+    {
+        var root = GetComponent<UIDocument>().rootVisualElement;
+
+        var container = root.Q<VisualElement>("photo-section");
+        var imageElement = container.Q<Image>("main-image");
+
+        Texture2D texture = LoadTextureFromFile("D:\\Programming\\GitHub projects\\PhotoSorter\\Assets\\Images\\test.png");
+
+        var containerWidth = container.resolvedStyle.width;
+        var containerHeight = container.resolvedStyle.height;
+
+        float imageAspectRatio = (float)texture.width / texture.height;
+        float containerAspectRatio = containerWidth / containerHeight;
+
+        float targetWidth, targetHeight;
+        if (imageAspectRatio > containerAspectRatio)    // border: left-right
+        {
+            targetWidth = containerWidth;
+            targetHeight = targetWidth / imageAspectRatio + 20;
+        }
+        else // border: top-bottom
+        {
+            targetHeight = containerHeight;
+            targetWidth = targetHeight * imageAspectRatio + 20;
+        }
+
+        imageElement.style.width = targetWidth;
+        imageElement.style.height = targetHeight;
+
+        Debug.Log($"container: {container}");
+        Debug.Log($"imageElement: {imageElement}");
+        Debug.Log($"containerWidth: {containerWidth}");
+        Debug.Log($"containerHeight: {containerHeight}");
+        Debug.Log($"imageAspectRatio: {imageAspectRatio}");
+        Debug.Log($"containerAspectRatio: {containerAspectRatio}");
+        Debug.Log($"targetWidth: {targetWidth}");
+        Debug.Log($"targetHeight: {targetHeight}");
+
+
+        imageElement.image = texture;
+    }
+
+
+
+
 
 
     private void ChoosePathForFolder(ClickEvent evt)
@@ -344,21 +400,55 @@ public class Config
 }
 
 
-public class DirectoryConfigurator
+public class FoldersHandler
 {
-    public string sourceFolderFullName;
-    public string[] destinationFolderFullNames;
+    public string sourceFolderFullName { get; set; }
+
+    [JsonProperty]
+    private string[] destinationFolderFullNames;
 
     private Dictionary<int, int> _keyCodeToFolderNumberMap;
 
 
 
-    public DirectoryConfigurator()
+    public FoldersHandler()
     {
         destinationFolderFullNames = new string[10];
 
         _keyCodeToFolderNumberMap = new() {
             { 49, 1 }, { 50, 2 }, { 51, 3 }, { 52, 4 }, { 53, 5 }, { 54, 6 }, { 55, 7 }, { 56, 8 }, { 57, 9 }, { 48, 0 }
         };
+    }
+
+
+
+    public string GetFolderPathByFolderNumber(int folderNumber)
+    {
+        if (folderNumber < 0 || folderNumber >= destinationFolderFullNames.Length)
+            return null;
+
+        return destinationFolderFullNames[folderNumber];
+    }
+
+    public bool SetFolderPathByFolderNumber(int folderNumber, string folderPath)
+    {
+        if (folderNumber < 0 || folderNumber >= destinationFolderFullNames.Length)
+            return false;
+
+        destinationFolderFullNames[folderNumber] = folderPath;
+        return true;
+    }
+
+
+
+    public string GetFolderPathByKeyCode(int keyCode)
+    {
+        if (!_keyCodeToFolderNumberMap.ContainsKey(keyCode))
+            return null;
+
+        var folderNumber = _keyCodeToFolderNumberMap[keyCode];
+        var destinationFolderPath = destinationFolderFullNames[folderNumber];
+
+        return destinationFolderPath;
     }
 }

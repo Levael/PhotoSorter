@@ -14,7 +14,7 @@
 
     --button-number-color       :   #474747;    /* gray */
 
-    --image-border-color        :   #E3E3E3;    /* whitish */
+    --image-border-color        :   red;    /* whitish */
 
 	--good-status-color			:	#3CDF43;    /* green */
 	--bad-status-color			:	#FC5858;    /* red */
@@ -300,16 +300,25 @@ TextElement {
     width: 75%;
     height: 100%;
     background-color: var(--text-panels-color);
+    justify-content: center;
+    align-items: center;
 }
 
-#main-image {}
+#main-image, #background-image {
+    position: absolute;
+}
+
+
+
+#main-image {
+    
+}
 
 #background-image {}
 
 
 
 .image-border-up-down, .image-border-left-right {
-    -unity-overflow-clip-box: content-box;  /* todo: check it */
     border-color: var(--image-border-color);
 }
 
