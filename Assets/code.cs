@@ -14,7 +14,8 @@ public class Main : MonoBehaviour
     private Config config;
     private string currentFolderPath;
     private string currentPhotoFullPath;
-    private Image uiImageElement;
+    private Image uiBackgroundImageElement;
+    private Image uiMainImageElement;
     private Queue<string> imagesBlob = new();
 
     private string _configFilePath = "Assets/last_selected_folders.json";
@@ -22,7 +23,6 @@ public class Main : MonoBehaviour
     private Dictionary<int, string> _keyCodeToFolderPath;
     private Dictionary<string, string> _uiNameToFolderPath;
 
-    
 
 
     void Awake()
@@ -55,7 +55,7 @@ public class Main : MonoBehaviour
             { "destination-folder-8-btn", "DestinationFolderForKey_8" },
             { "destination-folder-9-btn", "DestinationFolderForKey_9" },
             { "destination-folder-0-btn", "DestinationFolderForKey_0" },
-        };
+        };*/
 
         _uiRoot = GetComponent<UIDocument>().rootVisualElement;
         _uiRoot.RegisterCallback<KeyDownEvent>(OnKeyDown);
@@ -64,12 +64,12 @@ public class Main : MonoBehaviour
 
         _uiRoot.Q<VisualElement>("close-app-btn").RegisterCallback<ClickEvent>(evt => { Application.Quit(); });
 
-        foreach (var item in _uiNameToFolderPath)
+        /*foreach (var item in _uiNameToFolderPath)
         {
             _uiRoot.Q<VisualElement>(item.Key).RegisterCallback<ClickEvent>(ChoosePathForFolder);
-        }
+        }*/
 
-        uiImageElement = _uiRoot.Q<Image>("main-image");*/
+        uiMainImageElement = _uiRoot.Q<Image>("main-image");
     }
 
     void Start()
@@ -88,8 +88,6 @@ public class Main : MonoBehaviour
 
     void Update()
     {
-        var screenSizeText = GetComponent<UIDocument>().rootVisualElement.Q<TextElement>("console-message-data");
-        screenSizeText.text = "Screen Width: " + Screen.width + "px, Screen Height: " + Screen.height + "px";
     }
 
     void OnApplicationQuit()
@@ -101,6 +99,7 @@ public class Main : MonoBehaviour
     {
         yield return null;
         SetupUI();
+        SetupUI2();
     }
 
     void SetupUI()
@@ -133,19 +132,58 @@ public class Main : MonoBehaviour
         imageElement.style.width = targetWidth;
         imageElement.style.height = targetHeight;
 
-        Debug.Log($"container: {container}");
+        /*Debug.Log($"container: {container}");
         Debug.Log($"imageElement: {imageElement}");
         Debug.Log($"containerWidth: {containerWidth}");
         Debug.Log($"containerHeight: {containerHeight}");
         Debug.Log($"imageAspectRatio: {imageAspectRatio}");
         Debug.Log($"containerAspectRatio: {containerAspectRatio}");
         Debug.Log($"targetWidth: {targetWidth}");
-        Debug.Log($"targetHeight: {targetHeight}");
-
+        Debug.Log($"targetHeight: {targetHeight}");*/
 
         imageElement.image = texture;
     }
 
+    void SetupUI2()
+    {
+        var root = GetComponent<UIDocument>().rootVisualElement;
+
+        var container = root.Q<VisualElement>("photo-section");
+        var imageElement = container.Q<Image>("background-image");
+
+        Texture2D texture = LoadTextureFromFile("D:\\Programming\\GitHub projects\\PhotoSorter\\Assets\\Images\\test.png");
+
+
+        imageElement.image = BlurImageViaResample(texture, 200);   // such a big number is on purpose 
+    }
+
+    private Texture2D BlurImageViaResample(Texture2D original, float downscaleFactor)
+    {
+        int downscaledWidth = Mathf.Max(1, (int)(original.width / downscaleFactor));
+        int downscaledHeight = Mathf.Max(1, (int)(original.height / downscaleFactor));
+
+        RenderTexture rt = RenderTexture.GetTemporary(downscaledWidth, downscaledHeight);
+        rt.filterMode = FilterMode.Bilinear;
+
+        Graphics.Blit(original, rt);
+
+        RenderTexture rtUpscaled = RenderTexture.GetTemporary(original.width, original.height);
+        rtUpscaled.filterMode = FilterMode.Bilinear;
+
+        Graphics.Blit(rt, rtUpscaled);
+
+        RenderTexture previous = RenderTexture.active;
+        RenderTexture.active = rtUpscaled;
+        Texture2D upscaledTexture = new Texture2D(original.width, original.height);
+        upscaledTexture.ReadPixels(new Rect(0, 0, rtUpscaled.width, rtUpscaled.height), 0, 0);
+        upscaledTexture.Apply();
+        RenderTexture.active = previous;
+
+        RenderTexture.ReleaseTemporary(rt);
+        RenderTexture.ReleaseTemporary(rtUpscaled);
+
+        return upscaledTexture;
+    }
 
 
 
@@ -350,9 +388,9 @@ public class Main : MonoBehaviour
         Texture2D texture = LoadTextureFromFile(currentPhotoFullPath);
         Sprite sprite = CreateSpriteFromTexture(texture);
 
-        if (sprite != null && uiImageElement != null)
+        if (sprite != null && uiMainImageElement != null)
         {
-            uiImageElement.sprite = sprite;
+            uiMainImageElement.sprite = sprite;
         }
     }
 
@@ -369,6 +407,24 @@ public class Main : MonoBehaviour
             Debug.LogError("Failed to load image: " + filePath);
             return null;
         }
+    }
+
+    private Texture2D GetBlurredTexture(Texture2D source, Material blurMaterial)
+    {
+        RenderTexture renderTex = RenderTexture.GetTemporary(
+            source.width, source.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+
+        Graphics.Blit(source, renderTex, blurMaterial);
+
+        Texture2D result = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false);
+        RenderTexture.active = renderTex;
+        result.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+        result.Apply();
+
+        RenderTexture.ReleaseTemporary(renderTex);
+        RenderTexture.active = null;
+
+        return result;
     }
 
     private Sprite CreateSpriteFromTexture(Texture2D texture)

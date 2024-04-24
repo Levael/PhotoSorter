@@ -14,7 +14,7 @@
 
     --button-number-color       :   #474747;    /* gray */
 
-    --image-border-color        :   red;    /* whitish */
+    --image-border-color        :   #2F2F2F;    /* whitish */
 
 	--good-status-color			:	#3CDF43;    /* green */
 	--bad-status-color			:	#FC5858;    /* red */
@@ -175,10 +175,14 @@ TextElement {
     background-color: var(--buttons-color);
 }
 
-#source-folder-icon, .folder-number {
+#source-folder-icon, .folder-number, .source-folder-icon-wrapper {
     width: 10%;
     height: 100%;
     background-color: var(--button-number-color);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .folder-path-without-name, .folder-name {
@@ -208,6 +212,9 @@ TextElement {
 	background-size: contain;
 	background-repeat: no-repeat;
     background-position: center center;
+
+    width: 80%;
+    height: 80%;
 }
 
 
@@ -235,9 +242,6 @@ TextElement {
 
 #photo-details {
     flex-direction: row;
-    
-    border-bottom-width: 3px;
-    border-bottom-color: var(--window-color);
 }
 
 #photo-details-labels, #photo-details-data {
@@ -270,8 +274,8 @@ TextElement {
     display: flex;
     justify-content: space-around;
     flex-direction: column;
-    /* padding-top: 10px; */
     padding-left: 3px;
+    padding-top: 5px;
 }
 
 #console-message TextElement {
@@ -302,6 +306,7 @@ TextElement {
     background-color: var(--text-panels-color);
     justify-content: center;
     align-items: center;
+    overflow: hidden;
 }
 
 #main-image, #background-image {
@@ -314,7 +319,11 @@ TextElement {
     
 }
 
-#background-image {}
+#background-image {
+    --unity-image-size: stretch-to-fill;    /* stretches to fit the entire size. anyway it will be very blurred */
+    width: 100%;
+    height: 100%;
+}
 
 
 

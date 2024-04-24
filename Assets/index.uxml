@@ -33,10 +33,10 @@
                 <TextElement class="instruction" text="8. If file can’t be open or moved, it will be skipped"/>
             </VisualElement>
 
-            <VisualElement name="checkboxes">
+            <!-- <VisualElement name="checkboxes">
                 <Toggle text="remember my folders choice" name="toggle-config"/>
                 <Toggle text="blur image background" name="toggle-blur"/>
-            </VisualElement>
+            </VisualElement> -->
         </VisualElement>
 
         <VisualElement name="folders-section">
@@ -47,7 +47,9 @@
                     <TextElement class="folder-name" text=""/>
                 </VisualElement>
 
-                <Image name="source-folder-icon" scale-mode="ScaleToFit" />
+                <VisualElement class="source-folder-icon-wrapper">
+                    <Image name="source-folder-icon" scale-mode="ScaleToFit" />
+                </VisualElement>
 
             </VisualElement>
 
@@ -154,7 +156,6 @@
             </VisualElement>
 
             <VisualElement name="console-message">
-                <TextElement name="console-message-label" text="message:"/>
                 <TextElement name="console-message-data" text=""/>
             </VisualElement>
             
@@ -163,8 +164,8 @@
     </VisualElement>
 
     <VisualElement name="photo-section">
+        <Image name="background-image" material="/Assets/Images/blur.mat"/>
         <Image name="main-image" class="image-border-up-down"/>
-        <Image name="background-image"/>
     </VisualElement>
 
     <VisualElement name="close-app-btn">
