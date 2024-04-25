@@ -46,7 +46,7 @@ public class Main : MonoBehaviour
     void Awake()
     {
         // object for handling folders logic and json data
-        foldersHandler = new();
+        foldersHandler = LoadDataFromJson(_configFilePath);
 
         // ui root settings
         uiRoot = GetComponent<UIDocument>().rootVisualElement;
@@ -116,13 +116,12 @@ public class Main : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        //UpdateDataInJson(_configFilePath, config);
+        UpdateDataInJson(_configFilePath, foldersHandler);
     }
 
 
     // COMMAND PROCESSORS
 
-    // todo: change to dict
     private void KeyWasPressedEvent(KeyDownEvent keyDownEvent)
     {
         var keyCode = (int)keyDownEvent.keyCode;
@@ -229,8 +228,27 @@ public class Main : MonoBehaviour
         uiRoot.UnregisterCallback<GeometryChangedEvent>(CallOnceWhenUiIsReady);
     }
 
+    // too dirty, refactor later
     private void FillUiWithDataFromConfig()
     {
+        // source folder
+        {
+            var btnFolderElem = uiRoot.Q<VisualElement>("source-folder");
+            var btnFolderPathElem = btnFolderElem.Q<TextElement>(className: "folder-path-without-name");
+            var btnFolderNameElem = btnFolderElem.Q<TextElement>(className: "folder-name");
+
+            var folderFullPath = foldersHandler.sourceFolderFullName;
+
+
+            if (!String.IsNullOrEmpty(folderFullPath))
+            {
+                btnFolderPathElem.text = Path.GetDirectoryName(folderFullPath);
+                btnFolderNameElem.text = Path.GetFileName(folderFullPath);
+            }
+        }
+
+
+        // destination folders
         foreach (var folderBtn in foldersBtns)
         {
             var btnFolderNumberElem = folderBtn.Q<TextElement>(className: "folder-number");
