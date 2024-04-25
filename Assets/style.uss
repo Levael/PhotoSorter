@@ -36,15 +36,15 @@ TextElement {
 }
 
 .good-status {
-    background-color: var(--good-status-color);
+    color: var(--good-status-color);
 }
 
 .bad-status {
-    background-color: var(--bad-status-color);
+    color: var(--bad-status-color);
 }
 
 .warning-status {
-    background-color: var(--warning-status-color);
+    color: var(--warning-status-color);
 }
 
 .section-label {
@@ -227,7 +227,7 @@ TextElement {
     font-size: 20px;
     -unity-text-align: middle-center;
     -unity-font-style: bold;
-    transition: background-color 250ms ease-in-out;
+    transition: color 100ms ease-in-out;
 }
 
 /* info-section */
@@ -316,7 +316,6 @@ TextElement {
 
 
 #main-image {
-    
 }
 
 #background-image {

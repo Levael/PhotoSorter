@@ -8,153 +8,385 @@ using System.IO;
 using System.Reflection;
 using SFB;
 using System.Linq;
+using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 
 public class Main : MonoBehaviour
 {
-    private Config config;
-    private string currentFolderPath;
-    private string currentPhotoFullPath;
+    //private Config config;
+    private FoldersHandler foldersHandler;
+
+    private string currentSourceFolderPath;
+    private string currentPhotoName;
+    private string currentPhotoPathOnly;
+
+    private string previousFolderPath;
+    private string previousPhotoName;
+    private string previousPhotoPathOnly;
+
+    private VisualElement uiRoot;
+    private VisualElement uiImagesContainerElement;
     private Image uiBackgroundImageElement;
     private Image uiMainImageElement;
-    private Queue<string> imagesBlob = new();
+    private TextElement uiImageNameElement;
+    private TextElement uiImagePathElement;
+    private TextElement uiImageSizeElement;
 
     private string _configFilePath = "Assets/last_selected_folders.json";
-    private VisualElement _uiRoot;
-    private Dictionary<int, string> _keyCodeToFolderPath;
-    private Dictionary<string, string> _uiNameToFolderPath;
+    private Queue<string> imagesBlob = new();
+    private List<VisualElement> foldersBtns;
+    private TextElement console;
+    
+    private Dictionary<int, string> keyCodeToFolderPath;
+    private Dictionary<string, string> uiNameToFolderPath;
+    private Dictionary<int, Action<int>> keyCodeToFunctionMap;
 
 
 
     void Awake()
     {
-        /*config = LoadDataFromJson(_configFilePath);
+        // object for handling folders logic and json data
+        foldersHandler = new();
 
-        _keyCodeToFolderPath = new() {
-            { 49, "DestinationFolderForKey_1" },
-            { 50, "DestinationFolderForKey_2" },
-            { 51, "DestinationFolderForKey_3" },
-            { 52, "DestinationFolderForKey_4" },
-            { 53, "DestinationFolderForKey_5" },
-            { 54, "DestinationFolderForKey_6" },
-            { 55, "DestinationFolderForKey_7" },
-            { 56, "DestinationFolderForKey_8" },
-            { 57, "DestinationFolderForKey_9" },
-            { 48, "DestinationFolderForKey_0" },
-        };
+        // ui root settings
+        uiRoot = GetComponent<UIDocument>().rootVisualElement;
+        uiRoot.focusable = true;
+        uiRoot.Focus();
 
-        _uiNameToFolderPath = new() {
-            { "choose-sorting-folder-btn", "FolderToSort" },
+        // links to images raleted ui elements
+        uiImagesContainerElement = uiRoot.Q<VisualElement>("photo-section");
+        uiMainImageElement = uiImagesContainerElement.Q<Image>("main-image");
+        uiBackgroundImageElement = uiImagesContainerElement.Q<Image>("background-image");
 
-            { "destination-folder-1-btn", "DestinationFolderForKey_1" },
-            { "destination-folder-2-btn", "DestinationFolderForKey_2" },
-            { "destination-folder-3-btn", "DestinationFolderForKey_3" },
-            { "destination-folder-4-btn", "DestinationFolderForKey_4" },
-            { "destination-folder-5-btn", "DestinationFolderForKey_5" },
-            { "destination-folder-6-btn", "DestinationFolderForKey_6" },
-            { "destination-folder-7-btn", "DestinationFolderForKey_7" },
-            { "destination-folder-8-btn", "DestinationFolderForKey_8" },
-            { "destination-folder-9-btn", "DestinationFolderForKey_9" },
-            { "destination-folder-0-btn", "DestinationFolderForKey_0" },
-        };*/
+        uiImageNameElement = uiRoot.Q<TextElement>("file-name-info-data");
+        uiImagePathElement = uiRoot.Q<TextElement>("file-path-info-data");
+        uiImageSizeElement = uiRoot.Q<TextElement>("file-size-info-data");
 
-        _uiRoot = GetComponent<UIDocument>().rootVisualElement;
-        _uiRoot.RegisterCallback<KeyDownEvent>(OnKeyDown);
-        _uiRoot.focusable = true;
-        _uiRoot.Focus();
+        foldersBtns = uiRoot.Query<VisualElement>(className: "destination-folder").ToList();
+        console = uiRoot.Query<TextElement>("console-message-data");
 
-        _uiRoot.Q<VisualElement>("close-app-btn").RegisterCallback<ClickEvent>(evt => { Application.Quit(); });
 
-        /*foreach (var item in _uiNameToFolderPath)
+        // event listeners
+        uiRoot.RegisterCallback<KeyDownEvent>(KeyWasPressedEvent);
+        uiRoot.Q<VisualElement>("close-app-btn").RegisterCallback<ClickEvent>(evt => { Application.Quit(); });
+        uiRoot.Q<VisualElement>("source-folder").RegisterCallback<ClickEvent>(ProcessChooseSourceFolderCommand);
+        foldersBtns.ForEach((element) =>
         {
-            _uiRoot.Q<VisualElement>(item.Key).RegisterCallback<ClickEvent>(ChoosePathForFolder);
-        }*/
+            var folderNumber = int.Parse(element.Q<TextElement>(className: "folder-number").text);
+            foldersHandler.SetFolderUiNameByFolderNumber(folderNumber, element.name);
+            element.RegisterCallback<ClickEvent>(ProcessChooseDestinationFolderCommand);
+        });
+        
 
-        uiMainImageElement = _uiRoot.Q<Image>("main-image");
+
+        keyCodeToFunctionMap = new() {
+            { 49, ProcessMoveFileCommand },         // 1
+            { 50, ProcessMoveFileCommand },         // 2
+            { 51, ProcessMoveFileCommand },         // 3
+            { 52, ProcessMoveFileCommand },         // 4
+            { 53, ProcessMoveFileCommand },         // 5
+            { 54, ProcessMoveFileCommand },         // 6
+            { 55, ProcessMoveFileCommand },         // 7
+            { 56, ProcessMoveFileCommand },         // 8
+            { 57, ProcessMoveFileCommand },         // 9
+            { 48, ProcessMoveFileCommand },         // 0
+
+            { 8,  ProcessUndoLastActionCommand },   // backspace
+            { 32, ProcessSkipFileCommand },         // space
+            { 27, ProcessExitAppCommand },          // esc
+        };
     }
+
+    // MANDATORY STANDARD FUNCTIONALITY
 
     void Start()
     {
-        /*UpdateUi();
+        Application.targetFrameRate = 30;
 
-        if (config.FolderToSort != null)
+        FillUiWithDataFromConfig();
+
+        if (foldersHandler.sourceFolderFullName != null)
         {
-            currentFolderPath = config.FolderToSort;
-            DisplayNextImage();
-        }*/
-        StartCoroutine(InitializeUIAfterFrame());
-
-        
+            currentSourceFolderPath = foldersHandler.sourceFolderFullName;
+            uiRoot.RegisterCallback<GeometryChangedEvent>(CallOnceWhenUiIsReady);   // show image as soon as UI is ready
+        }
     }
 
-    void Update()
-    {
-    }
+    void Update() {}
 
     void OnApplicationQuit()
     {
         //UpdateDataInJson(_configFilePath, config);
     }
 
-    IEnumerator InitializeUIAfterFrame()
+
+    // COMMAND PROCESSORS
+
+    // todo: change to dict
+    private void KeyWasPressedEvent(KeyDownEvent keyDownEvent)
     {
-        yield return null;
-        SetupUI();
-        SetupUI2();
+        var keyCode = (int)keyDownEvent.keyCode;
+
+        if (keyCodeToFunctionMap.ContainsKey(keyCode))
+            keyCodeToFunctionMap[keyCode].Invoke(keyCode);
     }
 
-    void SetupUI()
+    private void ProcessExitAppCommand(int keyCode)
     {
-        var root = GetComponent<UIDocument>().rootVisualElement;
+        Application.Quit();
+    }
 
-        var container = root.Q<VisualElement>("photo-section");
-        var imageElement = container.Q<Image>("main-image");
+    private void ProcessSkipFileCommand(int keyCode)
+    {
+        DisplayNextImage();
+    }
 
-        Texture2D texture = LoadTextureFromFile("D:\\Programming\\GitHub projects\\PhotoSorter\\Assets\\Images\\test.png");
+    private void ProcessUndoLastActionCommand(int keyCode)
+    {
+        if (String.IsNullOrEmpty(previousFolderPath) || String.IsNullOrEmpty(previousPhotoName) || String.IsNullOrEmpty(previousPhotoPathOnly))
+        {
+            // todo
+        }
 
-        var containerWidth = container.resolvedStyle.width;
-        var containerHeight = container.resolvedStyle.height;
+    }
+
+    private void ProcessMoveFileCommand(int keyCode)
+    {
+        try
+        {
+            var folderPath = foldersHandler.GetFolderPathByKeyCode(keyCode);
+
+            if (String.IsNullOrEmpty(folderPath))
+            {
+                TriggerFlash(foldersHandler.GetFolderUiNameByKeyCode(keyCode), "warning-status");
+                return;
+            }
+
+            MoveFileToFolder(folderPath);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error while mooving file: {e.Message}");
+        }
+    }
+
+    private void ProcessChooseSourceFolderCommand(ClickEvent clickEvent)
+    {
+        string[] paths = StandaloneFileBrowser.OpenFolderPanel("Choose folder", "", false);
+
+        if (paths.Length <= 0)
+        {
+            //Debug.LogError("You didn't select any folder");
+            return;
+        }
+
+        string selectedFolderPath = paths[0];
+        //Debug.Log("Selected folder: " + selectedFolderPath);
+
+        var clickedBtnName = (VisualElement)clickEvent.currentTarget;
+
+        var btnFolderPath = clickedBtnName.Q<TextElement>(className: "folder-path-without-name");
+        var btnFolderName = clickedBtnName.Q<TextElement>(className: "folder-name");
+
+        foldersHandler.sourceFolderFullName = selectedFolderPath;
+        btnFolderPath.text = Path.GetDirectoryName(selectedFolderPath);
+        btnFolderName.text = Path.GetFileName(selectedFolderPath);
+
+        currentSourceFolderPath = foldersHandler.sourceFolderFullName;
+        imagesBlob.Clear();
+        DisplayNextImage();
+    }
+
+    private void ProcessChooseDestinationFolderCommand(ClickEvent clickEvent)
+    {
+        string[] paths = StandaloneFileBrowser.OpenFolderPanel("Choose folder", "", false);
+
+        if (paths.Length <= 0)
+        {
+            //Debug.LogError("You didn't select any folder");
+            return;
+        }
+
+        string selectedFolderPath = paths[0];
+        //Debug.Log("Selected folder: " + selectedFolderPath);
+
+        var clickedBtnName = (VisualElement)clickEvent.currentTarget;
+        var folderNumber = int.Parse(clickedBtnName.Q<TextElement>(className: "folder-number").text);
+
+        var btnFolderPath = clickedBtnName.Q<TextElement>(className: "folder-path-without-name");
+        var btnFolderName = clickedBtnName.Q<TextElement>(className: "folder-name");
+
+        foldersHandler.SetFolderPathByFolderNumber(folderNumber, selectedFolderPath);
+        btnFolderPath.text = Path.GetDirectoryName(selectedFolderPath);
+        btnFolderName.text = Path.GetFileName(selectedFolderPath);
+    }
+
+    // UI RELATED
+
+    private void CallOnceWhenUiIsReady(GeometryChangedEvent evt)
+    {
+        DisplayNextImage();
+        uiRoot.UnregisterCallback<GeometryChangedEvent>(CallOnceWhenUiIsReady);
+    }
+
+    private void FillUiWithDataFromConfig()
+    {
+        foreach (var folderBtn in foldersBtns)
+        {
+            var btnFolderNumberElem = folderBtn.Q<TextElement>(className: "folder-number");
+            var btnFolderPathElem = folderBtn.Q<TextElement>(className: "folder-path-without-name");
+            var btnFolderNameElem = folderBtn.Q<TextElement>(className: "folder-name");
+
+            var btnFolderNumber = int.Parse(btnFolderNumberElem.text);
+            var folderFullPath = foldersHandler.GetFolderPathByFolderNumber(btnFolderNumber);
+
+
+            if (!String.IsNullOrEmpty(folderFullPath))
+            {
+                btnFolderPathElem.text = Path.GetDirectoryName(folderFullPath);
+                btnFolderNameElem.text = Path.GetFileName(folderFullPath);
+            }
+        }
+    }
+
+    void TriggerFlash(string folderUiName, string className)
+    {
+        var folderBtn = uiRoot.Q<VisualElement>(folderUiName);
+        var target = folderBtn.Q<TextElement>(className: "folder-number");
+
+        // so dirty...
+        //Debug.Log($"folderUiName: {folderUiName}\nfolderBtn: {folderBtn}\n");
+
+        StartCoroutine(FlashGreenRoutine(target, className));
+    }
+
+    IEnumerator FlashGreenRoutine(VisualElement target, string className)
+    {
+        // className: "warning-status", "good-status" or "bad-status"
+
+        target.AddToClassList(className);
+        yield return new WaitForSeconds(0.5f);
+        target.RemoveFromClassList(className);
+    }
+
+    private void PrintWarning(string message)
+    {
+        console.ClearClassList();
+        console.AddToClassList("warning-status");
+        console.text = message;
+    }
+
+    private void PrintError(string message)
+    {
+        console.ClearClassList();
+        console.AddToClassList("bad-status");
+        console.text = message;
+    }
+
+    private void ClearConsole()
+    {
+        console.ClearClassList();
+        console.text = "";
+    }
+
+
+
+    // IMAGES RELATED
+
+    private void DisplayNextImage()
+    {
+        if (imagesBlob.Count == 0)
+        {
+            LoadBunchOfImages(currentSourceFolderPath);
+        }
+
+        if (imagesBlob.Count == 0)
+        {
+            ClearImage();
+            PrintWarning("Out of files");
+
+            return;
+        }
+
+        // add try catch
+        var currentPhotoFullPath = imagesBlob.Dequeue();
+
+        currentPhotoPathOnly = Path.GetDirectoryName(currentPhotoFullPath);
+        currentPhotoName = Path.GetFileName(currentPhotoFullPath);
+
+        uiImageNameElement.text = currentPhotoName;
+        uiImagePathElement.text = currentPhotoPathOnly;
+        uiImageSizeElement.text = $"{(new FileInfo(currentPhotoFullPath).Length / 1024.0 / 1024.0):F2} MB";
+
+        DisplayImage(currentPhotoFullPath);
+        ClearConsole();
+    }
+
+    private void DisplayImage(string fileFullPath)
+    {
+        var texture = LoadTextureFromFile(fileFullPath);
+
+        DisplayMainImage(texture);
+        DisplayBackgroundImage(texture);
+    }
+
+    private void DisplayMainImage(Texture2D texture)
+    {
+        // eliminates small inconsistencies by several pixels when setting the dimensions
+        texture.wrapMode = TextureWrapMode.Clamp;
+
+        var containerWidth = uiImagesContainerElement.resolvedStyle.width;
+        var containerHeight = uiImagesContainerElement.resolvedStyle.height;
 
         float imageAspectRatio = (float)texture.width / texture.height;
         float containerAspectRatio = containerWidth / containerHeight;
 
         float targetWidth, targetHeight;
-        if (imageAspectRatio > containerAspectRatio)    // border: left-right
+        if (imageAspectRatio > containerAspectRatio)
         {
+            // Horizontal Image
+
             targetWidth = containerWidth;
-            targetHeight = targetWidth / imageAspectRatio + 20;
+            targetHeight = targetWidth / imageAspectRatio + 20; // 10px from each border
+
+            uiMainImageElement.RemoveFromClassList("image-border-left-right");
+            uiMainImageElement.AddToClassList("image-border-up-down");
         }
-        else // border: top-bottom
+        else
         {
+            // Vertical Image
+
             targetHeight = containerHeight;
-            targetWidth = targetHeight * imageAspectRatio + 20;
+            targetWidth = targetHeight * imageAspectRatio + 20; // 10px from each border
+
+            uiMainImageElement.RemoveFromClassList("image-border-up-down");
+            uiMainImageElement.AddToClassList("image-border-left-right");
         }
 
-        imageElement.style.width = targetWidth;
-        imageElement.style.height = targetHeight;
+        uiMainImageElement.style.width = targetWidth;
+        uiMainImageElement.style.height = targetHeight;
 
-        /*Debug.Log($"container: {container}");
-        Debug.Log($"imageElement: {imageElement}");
-        Debug.Log($"containerWidth: {containerWidth}");
-        Debug.Log($"containerHeight: {containerHeight}");
-        Debug.Log($"imageAspectRatio: {imageAspectRatio}");
-        Debug.Log($"containerAspectRatio: {containerAspectRatio}");
-        Debug.Log($"targetWidth: {targetWidth}");
-        Debug.Log($"targetHeight: {targetHeight}");*/
-
-        imageElement.image = texture;
+        uiMainImageElement.image = texture;
     }
 
-    void SetupUI2()
+    private void DisplayBackgroundImage(Texture2D texture)
     {
-        var root = GetComponent<UIDocument>().rootVisualElement;
+        uiBackgroundImageElement.image = BlurImageViaResample(texture, 200);   // such a big number is on purpose 
+    }
 
-        var container = root.Q<VisualElement>("photo-section");
-        var imageElement = container.Q<Image>("background-image");
+    private void ClearImage()
+    {
+        uiBackgroundImageElement.image = null;
+        uiMainImageElement.image = null;
 
-        Texture2D texture = LoadTextureFromFile("D:\\Programming\\GitHub projects\\PhotoSorter\\Assets\\Images\\test.png");
+        uiMainImageElement.RemoveFromClassList("image-border-left-right");
+        uiMainImageElement.RemoveFromClassList("image-border-up-down");
 
+        uiImageNameElement.text = "";
+        uiImagePathElement.text = "";
+        uiImageSizeElement.text = "";
 
-        imageElement.image = BlurImageViaResample(texture, 200);   // such a big number is on purpose 
+        // todo: upd current and prev data
     }
 
     private Texture2D BlurImageViaResample(Texture2D original, float downscaleFactor)
@@ -185,45 +417,60 @@ public class Main : MonoBehaviour
         return upscaledTexture;
     }
 
-
-
-
-
-    private void ChoosePathForFolder(ClickEvent evt)
+    private void LoadBunchOfImages(string folderPath)
     {
-        string[] paths = StandaloneFileBrowser.OpenFolderPanel("Choose folder", "", false);
+        if (String.IsNullOrEmpty(folderPath)) return;
 
-        if (paths.Length <= 0)
+        string[] imageExtensions = new string[] { "*.jpg", "*.jpeg", "*.png", "*.bmp", "*.gif" };
+        imagesBlob = new Queue<string>(imageExtensions.SelectMany(ext => Directory.GetFiles(folderPath, ext)).Take(100));
+    }
+
+    private Texture2D LoadTextureFromFile(string filePath)
+    {
+        byte[] fileData = File.ReadAllBytes(filePath);
+        Texture2D texture = new Texture2D(2, 2);
+        if (texture.LoadImage(fileData))
         {
-            Debug.LogError("You didn't select any folder");
+            return texture;
+        }
+        else
+        {
+            PrintError($"Failed to load image: {filePath}");
+            return null;
+        }
+    }
+
+
+
+    // IMAGES MOOVING
+
+    private void MoveFileToFolder(string folderPath)
+    {
+        if (String.IsNullOrEmpty(folderPath))
+        {
             return;
         }
-        
-        string selectedFolderPath = paths[0];
-        //Debug.Log("Selected folder: " + selectedFolderPath);
 
-        var clickedBtnName = ((VisualElement)evt.currentTarget).name;
-        
-        var configName = _uiNameToFolderPath[clickedBtnName];
-        UpdateConfigObject(config, configName, selectedFolderPath);
+        var currentFileFullPath = Path.Combine(currentPhotoPathOnly, currentPhotoName);
+        var destinationFileFullPath = Path.Combine(folderPath, currentPhotoName);
 
-        UpdateBtnText(clickedBtnName, selectedFolderPath);
 
-        if (clickedBtnName == "choose-sorting-folder-btn")
+        try
         {
-            currentFolderPath = config.FolderToSort;
-            imagesBlob.Clear();
+            File.Move(currentFileFullPath, destinationFileFullPath);
             DisplayNextImage();
+
+            TriggerFlash(foldersHandler.GetFolderUiNameByFolderPath(folderPath), "good-status");
         }
+        catch (IOException ex)
+        {
+
+            TriggerFlash(foldersHandler.GetFolderUiNameByFolderPath(folderPath), "bad-status");
+        }
+
     }
 
-    private void UpdateBtnText(string clickedBtnName, string text)
-    {
-        var btnText = _uiRoot.Q<VisualElement>(clickedBtnName).Q<TextElement>();    // first of them
-        btnText.text = text;
-    }
-
-    private Config? LoadDataFromJson(string filePath)
+    private FoldersHandler? LoadDataFromJson(string filePath)
     {
         try
         {
@@ -234,7 +481,7 @@ public class Main : MonoBehaviour
             };
 
             string jsonString = File.ReadAllText(filePath);
-            return JsonConvert.DeserializeObject<Config>(jsonString, settings) ?? new Config();
+            return JsonConvert.DeserializeObject<FoldersHandler>(jsonString, settings) ?? new FoldersHandler();
         }
         catch (Exception ex)
         {
@@ -244,7 +491,7 @@ public class Main : MonoBehaviour
     }
 
     // still somethimes writes "null" into file
-    void UpdateDataInJson(string filePath, Config config)
+    void UpdateDataInJson(string filePath, FoldersHandler config)
     {
         try
         {
@@ -264,219 +511,35 @@ public class Main : MonoBehaviour
         }
     }
 
-    void TriggerFlash(VisualElement target, string className)
-    {
-        StartCoroutine(FlashGreenRoutine(target, className));
-    }
 
-    IEnumerator FlashGreenRoutine(VisualElement target, string className)
-    {
-        // className: "good-status" or "bad-status"
-
-        target.AddToClassList(className);
-        yield return new WaitForSeconds(0.5f);
-        target.RemoveFromClassList(className);
-    }
-
-    private void OnKeyDown(KeyDownEvent evt)
-    {
-        var keyCode = (int)evt.keyCode;
-
-        if (keyCode == 0) return;
-
-        try
-        {
-            var configFieldName = _keyCodeToFolderPath[keyCode];
-            Debug.Log($"Key: {keyCode}. Folder path: {configFieldName}");
-            MoveFileToFolder(configFieldName);
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error: {e.Message}");
-        }
-    }
-
-    private void MoveFileToFolder(string configFieldName)
-    {
-        var destinationFolderPath = GetFieldValue(config, configFieldName).ToString();
-        if (destinationFolderPath == null)
-        {
-            Debug.Log("not binded yet");
-            return;
-        }
-
-        var photoNameOnly = Path.GetFileName(currentPhotoFullPath);
-        var destinationFullPath = Path.Combine(destinationFolderPath, photoNameOnly);
-
-
-        try
-        {
-            File.Move(currentPhotoFullPath, destinationFullPath);
-            DisplayNextImage();
-            Debug.Log($"moved");
-        }
-        catch (IOException ex)
-        {
-            Debug.Log($"not moved");
-        }
-
-        // move file
-        // load next img
-        //Debug.Log($"destinationFolderPath: {destinationFolderPath}, photoNameOnly: {photoNameOnly}, destinationFullPath: {destinationFullPath}");
-    }
-
-    private void UpdateUi()
-    {
-        foreach (var item in _uiNameToFolderPath)
-        {
-            var folderPath = (string)GetFieldValue(config, item.Value);
-            if (!String.IsNullOrEmpty(folderPath))
-            {
-                UpdateBtnText(item.Key, folderPath);
-            }
-        }
-    }
-
-
-
-    private void UpdateConfigObject(Config config, string fieldName, string newValue)
-    {
-        FieldInfo fieldInfo = config.GetType().GetField(fieldName, BindingFlags.Public | BindingFlags.Instance);
-
-        if (fieldInfo != null)
-        {
-            fieldInfo.SetValue(config, newValue);
-        }
-        else
-        {
-            Debug.LogError($"Field '{fieldName}' not found in Config class.");
-        }
-    }
-
-    private object GetFieldValue(object obj, string fieldName)
-    {
-        Type type = obj.GetType();
-        FieldInfo fieldInfo = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-        if (fieldInfo != null)
-        {
-            return fieldInfo.GetValue(obj);
-        }
-        else
-        {
-            Debug.LogError("no such field");
-            return null;
-        }
-    }
-
-    private void LoadBunchOfImages(string folderPath)
-    {
-        string[] imageExtensions = new string[] { "*.jpg", "*.jpeg", "*.png", "*.bmp", "*.gif" };
-        imagesBlob = new Queue<string>(imageExtensions.SelectMany(ext => Directory.GetFiles(folderPath, ext)).Take(10));
-    }
-
-    private void DisplayNextImage()
-    {
-        if (imagesBlob.Count == 0)
-        {
-            LoadBunchOfImages(currentFolderPath);
-        }
-
-        // add try catch
-        currentPhotoFullPath = imagesBlob.Dequeue();
-
-        Texture2D texture = LoadTextureFromFile(currentPhotoFullPath);
-        Sprite sprite = CreateSpriteFromTexture(texture);
-
-        if (sprite != null && uiMainImageElement != null)
-        {
-            uiMainImageElement.sprite = sprite;
-        }
-    }
-
-    private Texture2D LoadTextureFromFile(string filePath)
-    {
-        byte[] fileData = File.ReadAllBytes(filePath);
-        Texture2D texture = new Texture2D(2, 2);
-        if (texture.LoadImage(fileData))
-        {
-            return texture;
-        }
-        else
-        {
-            Debug.LogError("Failed to load image: " + filePath);
-            return null;
-        }
-    }
-
-    private Texture2D GetBlurredTexture(Texture2D source, Material blurMaterial)
-    {
-        RenderTexture renderTex = RenderTexture.GetTemporary(
-            source.width, source.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
-
-        Graphics.Blit(source, renderTex, blurMaterial);
-
-        Texture2D result = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false);
-        RenderTexture.active = renderTex;
-        result.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
-        result.Apply();
-
-        RenderTexture.ReleaseTemporary(renderTex);
-        RenderTexture.active = null;
-
-        return result;
-    }
-
-    private Sprite CreateSpriteFromTexture(Texture2D texture)
-    {
-        if (texture == null) return null;
-
-        return Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-    }
 }
 
 
-
-
-
-public class Config
-{
-    public string FolderToSort;
-
-    public string DestinationFolderForKey_1;
-    public string DestinationFolderForKey_2;
-    public string DestinationFolderForKey_3;
-    public string DestinationFolderForKey_4;
-    public string DestinationFolderForKey_5;
-    public string DestinationFolderForKey_6;
-    public string DestinationFolderForKey_7;
-    public string DestinationFolderForKey_8;
-    public string DestinationFolderForKey_9;
-    public string DestinationFolderForKey_0;
-}
 
 
 public class FoldersHandler
 {
+    [JsonProperty]
     public string sourceFolderFullName { get; set; }
 
     [JsonProperty]
-    private string[] destinationFolderFullNames;
+    private string[] destinationFolderFullNames = new string[10];
 
-    private Dictionary<int, int> _keyCodeToFolderNumberMap;
+    [JsonIgnore]
+    private string[] destinationFolderUiNames = new string[10];
 
-
-
-    public FoldersHandler()
+    [JsonIgnore]
+    private Dictionary<int, int> _keyCodeToFolderNumberMap = new()
     {
-        destinationFolderFullNames = new string[10];
+        { 49, 1 }, { 50, 2 }, { 51, 3 }, { 52, 4 }, { 53, 5 }, { 54, 6 }, { 55, 7 }, { 56, 8 }, { 57, 9 }, { 48, 0 }
+    };
 
-        _keyCodeToFolderNumberMap = new() {
-            { 49, 1 }, { 50, 2 }, { 51, 3 }, { 52, 4 }, { 53, 5 }, { 54, 6 }, { 55, 7 }, { 56, 8 }, { 57, 9 }, { 48, 0 }
-        };
+
+
+    public void SetFolderUiNameByFolderNumber(int folderNumber, string folderUiName)
+    {
+        destinationFolderUiNames[folderNumber] = folderUiName;
     }
-
-
 
     public string GetFolderPathByFolderNumber(int folderNumber)
     {
@@ -495,8 +558,6 @@ public class FoldersHandler
         return true;
     }
 
-
-
     public string GetFolderPathByKeyCode(int keyCode)
     {
         if (!_keyCodeToFolderNumberMap.ContainsKey(keyCode))
@@ -506,5 +567,40 @@ public class FoldersHandler
         var destinationFolderPath = destinationFolderFullNames[folderNumber];
 
         return destinationFolderPath;
+    }
+
+    public bool SetFoldersUiNames(List<string> list)
+    {
+        try
+        {
+            destinationFolderUiNames = list.ToArray();
+
+            var lastElement = destinationFolderUiNames[destinationFolderUiNames.Length - 1];
+            for (int i = destinationFolderUiNames.Length - 1; i > 0; i--)
+                destinationFolderUiNames[i] = destinationFolderUiNames[i - 1];
+            destinationFolderUiNames[0] = lastElement;
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public string GetFolderBtnNameByFolderNumber(int folderNumber)
+    {
+        return destinationFolderUiNames[folderNumber];
+    }
+
+    public string GetFolderUiNameByFolderPath(string folderPath)
+    {
+        return destinationFolderUiNames[Array.IndexOf(destinationFolderFullNames, folderPath)];
+    }
+
+    public string GetFolderUiNameByKeyCode(int keyCode)
+    {
+        var index = _keyCodeToFolderNumberMap[keyCode];
+        return destinationFolderUiNames[index];
     }
 }

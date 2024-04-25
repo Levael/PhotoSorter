@@ -29,7 +29,7 @@
                 <TextElement class="instruction" text="4. You can always change any destination or source"/>
                 <TextElement class="instruction" text="5. Press SPACE to skip current file"/>
                 <TextElement class="instruction" text="6. Press BACKSPACE to undo last action"/>
-                <TextElement class="instruction" text="7. To exit press ‘X’ icon in the upper right corner"/>
+                <TextElement class="instruction" text="7. To exit press ‘X’ icon in the upper right corner or ESC button"/>
                 <TextElement class="instruction" text="8. If file can’t be open or moved, it will be skipped"/>
             </VisualElement>
 
@@ -53,7 +53,7 @@
 
             </VisualElement>
 
-            <VisualElement name="destination-folders" class="destination-folders">
+            <VisualElement name="destination-folders">
 
                 <VisualElement name="destination-folder-1" class="destination-folder">
                     <VisualElement class="folder-path-wrapper">
@@ -164,8 +164,8 @@
     </VisualElement>
 
     <VisualElement name="photo-section">
-        <Image name="background-image" material="/Assets/Images/blur.mat"/>
-        <Image name="main-image" class="image-border-up-down"/>
+        <Image name="background-image" />
+        <Image name="main-image"/>
     </VisualElement>
 
     <VisualElement name="close-app-btn">
