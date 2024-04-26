@@ -16,7 +16,7 @@
 
     --image-border-color        :   #2F2F2F;    /* whitish */
 
-	--good-status-color			:	#3CDF43;    /* green */
+	--good-status-color			:	#3CAEDF;    /* blue */
 	--bad-status-color			:	#FC5858;    /* red */
 	--warning-status-color		:	#FCBA58;    /* orange */
 }

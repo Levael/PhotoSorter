@@ -583,6 +583,9 @@ public class FoldersHandler
     public string chosenLanguage { get; set; } = "en";
 
     [JsonProperty]
+    public string chosenTheme { get; set; } = "dark";
+
+    [JsonProperty]
     public string sourceFolderFullName { get; set; }
 
     [JsonProperty]
