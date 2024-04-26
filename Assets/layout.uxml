@@ -39,8 +39,10 @@
                 </VisualElement>
 
                 <VisualElement name="choose-language-btns">
-                    <TextElement name="ru-lang-btn" class="language-btn" text="ru"/>
-                    <TextElement name="en-lang-btn" class="language-btn" text="en"/>
+                    <!-- Will be added later (todo) -->
+
+                    <!-- <TextElement name="ru-lang-btn" class="language-btn" text="ru"/>
+                    <TextElement name="en-lang-btn" class="language-btn" text="en"/> -->
                 </VisualElement>
             </VisualElement>
         </VisualElement>
