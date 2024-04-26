@@ -28,15 +28,21 @@
                 <TextElement class="instruction" text="3. Press key on keyboard according to folder number to move file"/>
                 <TextElement class="instruction" text="4. You can always change any destination or source"/>
                 <TextElement class="instruction" text="5. Press SPACE to skip current file"/>
-                <TextElement class="instruction" text="6. Press BACKSPACE to undo last action"/>
+                <TextElement class="instruction" text="6. Press BACKSPACE to undo last (only) action"/>
                 <TextElement class="instruction" text="7. To exit press ‘X’ icon in the upper right corner or ESC button"/>
                 <TextElement class="instruction" text="8. If file can’t be open or moved, it will be skipped"/>
             </VisualElement>
 
-            <!-- <VisualElement name="checkboxes">
-                <Toggle text="remember my folders choice" name="toggle-config"/>
-                <Toggle text="blur image background" name="toggle-blur"/>
-            </VisualElement> -->
+            <VisualElement name="control-btns">
+                <VisualElement name="clear-choices-btn-wrapper">
+                    <TextElement name="clear-choices-btn" text="clear chosen folders"/>  <!-- &lt;size=&quot;14&quot;&gt;TEXT&lt;/size&gt; -->
+                </VisualElement>
+
+                <VisualElement name="choose-language-btns">
+                    <TextElement name="ru-lang-btn" class="language-btn" text="ru"/>
+                    <TextElement name="en-lang-btn" class="language-btn" text="en"/>
+                </VisualElement>
+            </VisualElement>
         </VisualElement>
 
         <VisualElement name="folders-section">

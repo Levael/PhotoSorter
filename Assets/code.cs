@@ -20,9 +20,8 @@ public class Main : MonoBehaviour
     private string currentPhotoName;
     private string currentPhotoPathOnly;
 
-    private string previousFolderPath;
-    private string previousPhotoName;
-    private string previousPhotoPathOnly;
+    private string lastFileOriginFullPath = null;
+    private string lastFileDestinationFullPath = null;
 
     private VisualElement uiRoot;
     private VisualElement uiImagesContainerElement;
@@ -69,6 +68,7 @@ public class Main : MonoBehaviour
         // event listeners
         uiRoot.RegisterCallback<KeyDownEvent>(KeyWasPressedEvent);
         uiRoot.Q<VisualElement>("close-app-btn").RegisterCallback<ClickEvent>(evt => { Application.Quit(); });
+        uiRoot.Q<VisualElement>("clear-choices-btn-wrapper").RegisterCallback<ClickEvent>(evt => { ClearChoices(); });
         uiRoot.Q<VisualElement>("source-folder").RegisterCallback<ClickEvent>(ProcessChooseSourceFolderCommand);
         foldersBtns.ForEach((element) =>
         {
@@ -142,11 +142,20 @@ public class Main : MonoBehaviour
 
     private void ProcessUndoLastActionCommand(int keyCode)
     {
-        if (String.IsNullOrEmpty(previousFolderPath) || String.IsNullOrEmpty(previousPhotoName) || String.IsNullOrEmpty(previousPhotoPathOnly))
+        if (String.IsNullOrEmpty(lastFileOriginFullPath) || String.IsNullOrEmpty(lastFileDestinationFullPath))
         {
-            // todo
+            //Debug.Log("undo NOT successfully");
+            return;
         }
 
+        
+        File.Move(lastFileDestinationFullPath, lastFileOriginFullPath);
+        DisplayPreviousImage();
+
+        lastFileOriginFullPath = null;
+        lastFileDestinationFullPath = null;
+
+        //Debug.Log("undo successfully");
     }
 
     private void ProcessMoveFileCommand(int keyCode)
@@ -165,8 +174,11 @@ public class Main : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error while mooving file: {e.Message}");
+            TriggerFlash(foldersHandler.GetFolderUiNameByKeyCode(keyCode), "bad-status");
         }
+
+        DisplayNextImage();
+
     }
 
     private void ProcessChooseSourceFolderCommand(ClickEvent clickEvent)
@@ -180,7 +192,6 @@ public class Main : MonoBehaviour
         }
 
         string selectedFolderPath = paths[0];
-        //Debug.Log("Selected folder: " + selectedFolderPath);
 
         var clickedBtnName = (VisualElement)clickEvent.currentTarget;
 
@@ -202,12 +213,10 @@ public class Main : MonoBehaviour
 
         if (paths.Length <= 0)
         {
-            //Debug.LogError("You didn't select any folder");
             return;
         }
 
         string selectedFolderPath = paths[0];
-        //Debug.Log("Selected folder: " + selectedFolderPath);
 
         var clickedBtnName = (VisualElement)clickEvent.currentTarget;
         var folderNumber = int.Parse(clickedBtnName.Q<TextElement>(className: "folder-number").text);
@@ -228,7 +237,7 @@ public class Main : MonoBehaviour
         uiRoot.UnregisterCallback<GeometryChangedEvent>(CallOnceWhenUiIsReady);
     }
 
-    // too dirty, refactor later
+    // SOOOO dirty, refactor later
     private void FillUiWithDataFromConfig()
     {
         // source folder
@@ -244,6 +253,11 @@ public class Main : MonoBehaviour
             {
                 btnFolderPathElem.text = Path.GetDirectoryName(folderFullPath);
                 btnFolderNameElem.text = Path.GetFileName(folderFullPath);
+            }
+            else
+            {
+                btnFolderPathElem.text = "";
+                btnFolderNameElem.text = "";
             }
         }
 
@@ -264,7 +278,19 @@ public class Main : MonoBehaviour
                 btnFolderPathElem.text = Path.GetDirectoryName(folderFullPath);
                 btnFolderNameElem.text = Path.GetFileName(folderFullPath);
             }
+            else
+            {
+                btnFolderPathElem.text = "";
+                btnFolderNameElem.text = "";
+            }
         }
+    }
+
+    private void ClearChoices()
+    {
+        foldersHandler.ResetAllData();
+        FillUiWithDataFromConfig();
+        ClearImage();
     }
 
     void TriggerFlash(string folderUiName, string className)
@@ -329,6 +355,24 @@ public class Main : MonoBehaviour
         // add try catch
         var currentPhotoFullPath = imagesBlob.Dequeue();
 
+        // update current data
+        currentPhotoPathOnly = Path.GetDirectoryName(currentPhotoFullPath);
+        currentPhotoName = Path.GetFileName(currentPhotoFullPath);
+
+        uiImageNameElement.text = currentPhotoName;
+        uiImagePathElement.text = currentPhotoPathOnly;
+        uiImageSizeElement.text = $"{(new FileInfo(currentPhotoFullPath).Length / 1024.0 / 1024.0):F2} MB";
+
+        DisplayImage(currentPhotoFullPath);
+        ClearConsole();
+    }
+
+    private void DisplayPreviousImage()
+    {
+        // add try catch
+        var currentPhotoFullPath = lastFileOriginFullPath;
+
+        // update current data
         currentPhotoPathOnly = Path.GetDirectoryName(currentPhotoFullPath);
         currentPhotoName = Path.GetFileName(currentPhotoFullPath);
 
@@ -469,20 +513,18 @@ public class Main : MonoBehaviour
             return;
         }
 
-        var currentFileFullPath = Path.Combine(currentPhotoPathOnly, currentPhotoName);
-        var destinationFileFullPath = Path.Combine(folderPath, currentPhotoName);
+        lastFileOriginFullPath = Path.Combine(currentPhotoPathOnly, currentPhotoName);
+        lastFileDestinationFullPath = Path.Combine(folderPath, currentPhotoName);
 
 
         try
         {
-            File.Move(currentFileFullPath, destinationFileFullPath);
-            DisplayNextImage();
+            File.Move(lastFileOriginFullPath, lastFileDestinationFullPath);
 
             TriggerFlash(foldersHandler.GetFolderUiNameByFolderPath(folderPath), "good-status");
         }
         catch (IOException ex)
         {
-
             TriggerFlash(foldersHandler.GetFolderUiNameByFolderPath(folderPath), "bad-status");
         }
 
@@ -494,8 +536,8 @@ public class Main : MonoBehaviour
         {
             JsonSerializerSettings settings = new JsonSerializerSettings
             {
-                DefaultValueHandling = DefaultValueHandling.Populate,   // 'Populate' ensures missing JSON properties are initialized to default values
-                NullValueHandling = NullValueHandling.Include           // Including fields with null values in JSON
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                NullValueHandling = NullValueHandling.Ignore
             };
 
             string jsonString = File.ReadAllText(filePath);
@@ -538,10 +580,15 @@ public class Main : MonoBehaviour
 public class FoldersHandler
 {
     [JsonProperty]
+    public string chosenLanguage { get; set; } = "en";
+
+    [JsonProperty]
     public string sourceFolderFullName { get; set; }
 
     [JsonProperty]
     private string[] destinationFolderFullNames = new string[10];
+
+
 
     [JsonIgnore]
     private string[] destinationFolderUiNames = new string[10];
@@ -620,5 +667,11 @@ public class FoldersHandler
     {
         var index = _keyCodeToFolderNumberMap[keyCode];
         return destinationFolderUiNames[index];
+    }
+
+    public void ResetAllData()
+    {
+        sourceFolderFullName = null;
+        destinationFolderFullNames = new string[10];
     }
 }
