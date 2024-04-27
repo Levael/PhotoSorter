@@ -1,0 +1,22 @@
+﻿{
+  "instructionsAndSettingsLabel": "instructions & settings",
+  "infoAndConsoleLabel": "file info & console",
+  "clearButton": "clear chosen folders",
+  "instruction_1": "1. Choose source folder (which to sort)",
+  "instruction_2": "2. Choose destination folder(s) (to where sort)",
+  "instruction_3": "3. Press key on keyboard according to folder number to move file",
+  "instruction_4": "4. You can always change any destination or source",
+  "instruction_5": "5. Press SPACE to skip current file",
+  "instruction_6": "6. Press BACKSPACE to undo last action",
+  "instruction_7": "7. To exit press ‘X’ icon in the upper right corner or Esc button",
+  "instruction_8": "8. Keep an eye on the console for messages (bottom left)",
+  "noFilesWarning": "Out of files",
+  "failedToLoadFileError": "Failed to load image",
+  "darkThemeBtnTooltip": "dark mode",
+  "lightThemeBtnTooltip": "light mode",
+  "ruLangBtnTooltip": "русский язык",
+  "enLangBtnTooltip": "english language",
+  "fileNameLabel": "mame",
+  "filePathLabel": "path",
+  "fileSizeLabel": "size"
+}

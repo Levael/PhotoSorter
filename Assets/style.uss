@@ -14,7 +14,7 @@
 
     --button-number-color       :   #474747;    /* gray */
 
-    --image-border-color        :   #2F2F2F;    /* whitish */
+    --image-border-color        :   #2F2F2F;    /* dark */
 
 	--good-status-color			:	#3CAEDF;    /* blue */
 	--bad-status-color			:	#FC5858;    /* red */
@@ -178,6 +178,11 @@ TextElement {
     width: 25px;
 }
 
+.chosenOption {
+    border-width: 1px;
+    border-color: var(--main-font-color);
+}
+
 /* folders-section */
 
 #source-folder, .destination-folder {
@@ -278,15 +283,15 @@ TextElement {
     -unity-text-align: middle-left;
     text-overflow: ellipsis;
     overflow: hidden;
-    font-size: 16px;
+    font-size: 15px;
 }
 
 #photo-details-labels {
-    width: 18%;
+    width: 15%;
 }
 
 #photo-details-data {
-    width: 82%;
+    width: 85%;
     padding-right: 3px;
     -unity-font-style: bold;
 }

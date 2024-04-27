@@ -10,11 +10,13 @@ using SFB;
 using System.Linq;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
+using UnityEditor;
+using UnityEditor.UIElements;
 
 public class Main : MonoBehaviour
 {
-    //private Config config;
-    private FoldersHandler foldersHandler;
+    private ConfigHandler configHandler;
+    private LanguageHandler languageTemplate;
 
     private string currentSourceFolderPath;
     private string currentPhotoName;
@@ -45,7 +47,9 @@ public class Main : MonoBehaviour
     void Awake()
     {
         // object for handling folders logic and json data
-        foldersHandler = LoadDataFromJson(_configFilePath);
+        configHandler = LoadDataFromJson<ConfigHandler>(_configFilePath);
+        configHandler.ValidatePaths();
+        //languageTemplate = LoadLanguage(configHandler.chosenLanguage);
 
         // ui root settings
         uiRoot = GetComponent<UIDocument>().rootVisualElement;
@@ -68,12 +72,14 @@ public class Main : MonoBehaviour
         // event listeners
         uiRoot.RegisterCallback<KeyDownEvent>(KeyWasPressedEvent);
         uiRoot.Q<VisualElement>("close-app-btn").RegisterCallback<ClickEvent>(evt => { Application.Quit(); });
+        uiRoot.Q<TextElement>("ru-lang-btn").RegisterCallback<ClickEvent>(evt => { ChangeLanguage("ru"); });
+        uiRoot.Q<TextElement>("en-lang-btn").RegisterCallback<ClickEvent>(evt => { ChangeLanguage("en"); });
         uiRoot.Q<VisualElement>("clear-choices-btn-wrapper").RegisterCallback<ClickEvent>(evt => { ClearChoices(); });
         uiRoot.Q<VisualElement>("source-folder").RegisterCallback<ClickEvent>(ProcessChooseSourceFolderCommand);
         foldersBtns.ForEach((element) =>
         {
             var folderNumber = int.Parse(element.Q<TextElement>(className: "folder-number").text);
-            foldersHandler.SetFolderUiNameByFolderNumber(folderNumber, element.name);
+            configHandler.SetFolderUiNameByFolderNumber(folderNumber, element.name);
             element.RegisterCallback<ClickEvent>(ProcessChooseDestinationFolderCommand);
         });
         
@@ -103,20 +109,24 @@ public class Main : MonoBehaviour
     {
         Application.targetFrameRate = 30;
 
+        ChangeLanguage(configHandler.chosenLanguage);
         FillUiWithDataFromConfig();
 
-        if (foldersHandler.sourceFolderFullName != null)
+        if (configHandler.sourceFolderFullName != null)
         {
-            currentSourceFolderPath = foldersHandler.sourceFolderFullName;
+            currentSourceFolderPath = configHandler.sourceFolderFullName;
             uiRoot.RegisterCallback<GeometryChangedEvent>(CallOnceWhenUiIsReady);   // show image as soon as UI is ready
         }
+
+        // temp
+        //Debug.Log(languageTemplate.fields["instruction_1"]);
     }
 
     void Update() {}
 
     void OnApplicationQuit()
     {
-        UpdateDataInJson(_configFilePath, foldersHandler);
+        UpdateDataInJson(_configFilePath, configHandler);
     }
 
 
@@ -162,11 +172,11 @@ public class Main : MonoBehaviour
     {
         try
         {
-            var folderPath = foldersHandler.GetFolderPathByKeyCode(keyCode);
+            var folderPath = configHandler.GetFolderPathByKeyCode(keyCode);
 
             if (String.IsNullOrEmpty(folderPath))
             {
-                TriggerFlash(foldersHandler.GetFolderUiNameByKeyCode(keyCode), "warning-status");
+                TriggerFlash(configHandler.GetFolderUiNameByKeyCode(keyCode), "warning-status");
                 return;
             }
 
@@ -175,7 +185,7 @@ public class Main : MonoBehaviour
         }
         catch (Exception e)
         {
-            TriggerFlash(foldersHandler.GetFolderUiNameByKeyCode(keyCode), "bad-status");
+            TriggerFlash(configHandler.GetFolderUiNameByKeyCode(keyCode), "bad-status");
         }
     }
 
@@ -196,11 +206,11 @@ public class Main : MonoBehaviour
         var btnFolderPath = clickedBtnName.Q<TextElement>(className: "folder-path-without-name");
         var btnFolderName = clickedBtnName.Q<TextElement>(className: "folder-name");
 
-        foldersHandler.sourceFolderFullName = selectedFolderPath;
+        configHandler.sourceFolderFullName = selectedFolderPath;
         btnFolderPath.text = Path.GetDirectoryName(selectedFolderPath);
         btnFolderName.text = Path.GetFileName(selectedFolderPath);
 
-        currentSourceFolderPath = foldersHandler.sourceFolderFullName;
+        currentSourceFolderPath = configHandler.sourceFolderFullName;
         imagesBlob.Clear();
         DisplayNextImage();
     }
@@ -222,12 +232,48 @@ public class Main : MonoBehaviour
         var btnFolderPath = clickedBtnName.Q<TextElement>(className: "folder-path-without-name");
         var btnFolderName = clickedBtnName.Q<TextElement>(className: "folder-name");
 
-        foldersHandler.SetFolderPathByFolderNumber(folderNumber, selectedFolderPath);
+        configHandler.SetFolderPathByFolderNumber(folderNumber, selectedFolderPath);
         btnFolderPath.text = Path.GetDirectoryName(selectedFolderPath);
         btnFolderName.text = Path.GetFileName(selectedFolderPath);
     }
 
     // UI RELATED
+
+    private LanguageHandler LoadLanguage(string language)
+    {
+        var dict = new Dictionary<string, string>()
+        {
+            { "en", "Assets/en.json" },
+            { "ru", "Assets/ru.json" },
+        };
+
+        var settings = new JsonSerializerSettings
+        {
+            DefaultValueHandling = DefaultValueHandling.Populate,
+            NullValueHandling = NullValueHandling.Include
+        };
+
+        return LoadDataFromJson<LanguageHandler>(dict[language], settings);
+    }
+
+    private void ChangeLanguage(string language)
+    {
+        configHandler.chosenLanguage = language;
+        languageTemplate = LoadLanguage(language);
+        FillUiWithDataFromLanguage();
+
+        if (language == "ru")
+        {
+            uiRoot.Q<TextElement>("ru-lang-btn").AddToClassList("chosenOption");
+            uiRoot.Q<TextElement>("en-lang-btn").RemoveFromClassList("chosenOption");
+        }
+            
+        if (language == "en")
+        {
+            uiRoot.Q<TextElement>("en-lang-btn").AddToClassList("chosenOption");
+            uiRoot.Q<TextElement>("ru-lang-btn").RemoveFromClassList("chosenOption");
+        } 
+    }
 
     private void CallOnceWhenUiIsReady(GeometryChangedEvent evt)
     {
@@ -244,7 +290,7 @@ public class Main : MonoBehaviour
             var btnFolderPathElem = btnFolderElem.Q<TextElement>(className: "folder-path-without-name");
             var btnFolderNameElem = btnFolderElem.Q<TextElement>(className: "folder-name");
 
-            var folderFullPath = foldersHandler.sourceFolderFullName;
+            var folderFullPath = configHandler.sourceFolderFullName;
 
 
             if (!String.IsNullOrEmpty(folderFullPath))
@@ -268,7 +314,7 @@ public class Main : MonoBehaviour
             var btnFolderNameElem = folderBtn.Q<TextElement>(className: "folder-name");
 
             var btnFolderNumber = int.Parse(btnFolderNumberElem.text);
-            var folderFullPath = foldersHandler.GetFolderPathByFolderNumber(btnFolderNumber);
+            var folderFullPath = configHandler.GetFolderPathByFolderNumber(btnFolderNumber);
 
 
             if (!String.IsNullOrEmpty(folderFullPath))
@@ -284,9 +330,38 @@ public class Main : MonoBehaviour
         }
     }
 
+    private void FillUiWithDataFromLanguage()
+    {
+        var dict = languageTemplate.uiElementNameToFieldNameMap;
+        foreach (var dataPair in dict)
+        {
+            string fieldName = dataPair.Value;
+            string uiElementKey = dataPair.Key;
+
+            var fieldInfo = typeof(LanguageHandler).GetField(fieldName);
+            if (fieldInfo != null)
+            {
+                string localizedText = fieldInfo.GetValue(languageTemplate) as string;
+                var uiElement = uiRoot.Q<TextElement>(uiElementKey);
+                if (uiElement != null)
+                {
+                    uiElement.text = localizedText;
+                }
+                else
+                {
+                    Debug.Log($"UI element not found for key: {uiElementKey}");
+                }
+            }
+            else
+            {
+                Debug.Log($"Field not found for name: {fieldName}");
+            }
+        }
+    }
+
     private void ClearChoices()
     {
-        foldersHandler.ResetAllData();
+        configHandler.ResetAllData();
         FillUiWithDataFromConfig();
         ClearImage();
     }
@@ -519,37 +594,41 @@ public class Main : MonoBehaviour
         {
             File.Move(lastFileOriginFullPath, lastFileDestinationFullPath);
 
-            TriggerFlash(foldersHandler.GetFolderUiNameByFolderPath(folderPath), "good-status");
+            TriggerFlash(configHandler.GetFolderUiNameByFolderPath(folderPath), "good-status");
         }
         catch (IOException ex)
         {
-            TriggerFlash(foldersHandler.GetFolderUiNameByFolderPath(folderPath), "bad-status");
+            TriggerFlash(configHandler.GetFolderUiNameByFolderPath(folderPath), "bad-status");
         }
 
     }
 
-    private FoldersHandler? LoadDataFromJson(string filePath)
+    private T? LoadDataFromJson<T>(string filePath, JsonSerializerSettings settings = null) where T : new()
     {
         try
         {
-            JsonSerializerSettings settings = new JsonSerializerSettings
+            if (settings == null)
             {
-                DefaultValueHandling = DefaultValueHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore
-            };
+                settings = new JsonSerializerSettings
+                {
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+            }
 
             string jsonString = File.ReadAllText(filePath);
-            return JsonConvert.DeserializeObject<FoldersHandler>(jsonString, settings) ?? new FoldersHandler();
+            //Debug.Log($"jsonString: {jsonString}");
+            return JsonConvert.DeserializeObject<T>(jsonString, settings) ?? new T();
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError($"Error reading or deserializing the file: {ex.Message}");
-            return null;
+            UnityEngine.Debug.LogError($"filePath: {filePath}; Error reading or deserializing the file: {ex.Message}");
+            return default(T);
         }
     }
 
     // still somethimes writes "null" into file
-    void UpdateDataInJson(string filePath, FoldersHandler config)
+    void UpdateDataInJson<T>(string filePath, T config)
     {
         try
         {
@@ -569,13 +648,12 @@ public class Main : MonoBehaviour
         }
     }
 
-
 }
 
 
 
 
-public class FoldersHandler
+public class ConfigHandler
 {
     [JsonProperty]
     public string chosenLanguage { get; set; } = "en";
@@ -601,6 +679,20 @@ public class FoldersHandler
     };
 
 
+
+    public void ValidatePaths()
+    {
+        // source folder check
+        if (!Directory.Exists(sourceFolderFullName))
+            sourceFolderFullName = null;
+
+        // destination folders check
+        for (int i = 0; i < destinationFolderFullNames.Length; i++)
+        {
+            if (!Directory.Exists(destinationFolderFullNames[i]))
+                destinationFolderFullNames[i] = null;
+        }
+    }
 
     public void SetFolderUiNameByFolderNumber(int folderNumber, string folderUiName)
     {

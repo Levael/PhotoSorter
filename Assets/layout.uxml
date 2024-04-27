@@ -20,29 +20,27 @@
     <VisualElement name="controls-section">
 
         <VisualElement name="instructions-section">
-            <TextElement class="section-label" text="instructions &amp; settings"/>
+            <TextElement class="section-label" name="instructions-section-label"/>
 
             <VisualElement name="instructions">
-                <TextElement class="instruction" text="1. Choose source folder (which to sort)"/>
-                <TextElement class="instruction" text="2. Choose destination folder(s) (to where sort)"/>
-                <TextElement class="instruction" text="3. Press key on keyboard according to folder number to move file"/>
-                <TextElement class="instruction" text="4. You can always change any destination or source"/>
-                <TextElement class="instruction" text="5. Press SPACE to skip current file"/>
-                <TextElement class="instruction" text="6. Press BACKSPACE to undo last (only) action"/>
-                <TextElement class="instruction" text="7. To exit press ‘X’ icon in the upper right corner or ESC button"/>
-                <TextElement class="instruction" text="8. If file can’t be open or moved, it will be skipped"/>
+                <TextElement name="instruction_1" class="instruction"/> <!-- text="1. Choose source folder (which to sort)" -->
+                <TextElement name="instruction_2" class="instruction"/> <!-- text="2. Choose destination folder(s) (to where sort)" -->
+                <TextElement name="instruction_3" class="instruction"/> <!-- text="3. Press key on keyboard according to folder number to move file" -->
+                <TextElement name="instruction_4" class="instruction"/> <!-- text="4. You can always change any destination or source" -->
+                <TextElement name="instruction_5" class="instruction"/> <!-- text="5. Press SPACE to skip current file" -->
+                <TextElement name="instruction_6" class="instruction"/> <!-- text="6. Press BACKSPACE to undo last (only) action" -->
+                <TextElement name="instruction_7" class="instruction"/> <!-- text="7. To exit press ‘X’ icon in the upper right corner or ESC button" -->
+                <TextElement name="instruction_8" class="instruction"/> <!-- text="8. If file can’t be open or moved, it will be skipped" -->
             </VisualElement>
 
             <VisualElement name="control-btns">
                 <VisualElement name="clear-choices-btn-wrapper">
-                    <TextElement name="clear-choices-btn" text="clear chosen folders"/>  <!-- &lt;size=&quot;14&quot;&gt;TEXT&lt;/size&gt; -->
+                    <TextElement name="clear-choices-btn"/>  <!-- &lt;size=&quot;14&quot;&gt;TEXT&lt;/size&gt; -->
                 </VisualElement>
 
                 <VisualElement name="choose-language-btns">
-                    <!-- Will be added later (todo) -->
-
-                    <!-- <TextElement name="ru-lang-btn" class="language-btn" text="ru"/>
-                    <TextElement name="en-lang-btn" class="language-btn" text="en"/> -->
+                    <TextElement name="ru-lang-btn" class="language-btn" text="ru"/>
+                    <TextElement name="en-lang-btn" class="language-btn" text="en"/>
                 </VisualElement>
             </VisualElement>
         </VisualElement>
@@ -51,8 +49,8 @@
             <VisualElement name="source-folder">
 
                 <VisualElement class="folder-path-wrapper">
-                    <TextElement class="folder-path-without-name" text=""/>
-                    <TextElement class="folder-name" text=""/>
+                    <TextElement class="folder-path-without-name"/>
+                    <TextElement class="folder-name"/>
                 </VisualElement>
 
                 <VisualElement class="source-folder-icon-wrapper">
@@ -65,64 +63,64 @@
 
                 <VisualElement name="destination-folder-1" class="destination-folder">
                     <VisualElement class="folder-path-wrapper">
-                        <TextElement class="folder-path-without-name" text=""/>
-                        <TextElement class="folder-name" text=""/>
+                        <TextElement class="folder-path-without-name"/>
+                        <TextElement class="folder-name"/>
                     </VisualElement>
                     <TextElement class="folder-number" text="1"/>
                 </VisualElement>
 
                 <VisualElement name="destination-folder-2" class="destination-folder">
                     <VisualElement class="folder-path-wrapper">
-                        <TextElement class="folder-path-without-name" text=""/>
-                        <TextElement class="folder-name" text=""/>
+                        <TextElement class="folder-path-without-name"/>
+                        <TextElement class="folder-name"/>
                     </VisualElement>
                     <TextElement class="folder-number" text="2"/>
                 </VisualElement>
 
                 <VisualElement name="destination-folder-3" class="destination-folder">
                     <VisualElement class="folder-path-wrapper">
-                        <TextElement class="folder-path-without-name" text=""/>
-                        <TextElement class="folder-name" text=""/>
+                        <TextElement class="folder-path-without-name"/>
+                        <TextElement class="folder-name"/>
                     </VisualElement>
                     <TextElement class="folder-number" text="3"/>
                 </VisualElement>
 
                 <VisualElement name="destination-folder-4" class="destination-folder">
                     <VisualElement class="folder-path-wrapper">
-                        <TextElement class="folder-path-without-name" text=""/>
-                        <TextElement class="folder-name" text=""/>
+                        <TextElement class="folder-path-without-name"/>
+                        <TextElement class="folder-name"/>
                     </VisualElement>
                     <TextElement class="folder-number" text="4"/>
                 </VisualElement>
 
                 <VisualElement name="destination-folder-5" class="destination-folder">
                     <VisualElement class="folder-path-wrapper">
-                        <TextElement class="folder-path-without-name" text=""/>
-                        <TextElement class="folder-name" text=""/>
+                        <TextElement class="folder-path-without-name"/>
+                        <TextElement class="folder-name"/>
                     </VisualElement>
                     <TextElement class="folder-number" text="5"/>
                 </VisualElement>
 
                 <VisualElement name="destination-folder-6" class="destination-folder">
                     <VisualElement class="folder-path-wrapper">
-                        <TextElement class="folder-path-without-name" text=""/>
-                        <TextElement class="folder-name" text=""/>
+                        <TextElement class="folder-path-without-name"/>
+                        <TextElement class="folder-name"/>
                     </VisualElement>
                     <TextElement class="folder-number" text="6"/>
                 </VisualElement>
 
                 <VisualElement name="destination-folder-7" class="destination-folder">
                     <VisualElement class="folder-path-wrapper">
-                        <TextElement class="folder-path-without-name" text=""/>
-                        <TextElement class="folder-name" text=""/>
+                        <TextElement class="folder-path-without-name"/>
+                        <TextElement class="folder-name"/>
                     </VisualElement>
                     <TextElement class="folder-number" text="7"/>
                 </VisualElement>
 
                 <VisualElement name="destination-folder-8" class="destination-folder">
                     <VisualElement class="folder-path-wrapper">
-                        <TextElement class="folder-path-without-name" text=""/>
-                        <TextElement class="folder-name" text=""/>
+                        <TextElement class="folder-path-without-name"/>
+                        <TextElement class="folder-name"/>
                     </VisualElement>
                     <TextElement class="folder-number" text="8"/>
                 </VisualElement>
@@ -137,8 +135,8 @@
 
                 <VisualElement name="destination-folder-0" class="destination-folder">
                     <VisualElement class="folder-path-wrapper">
-                        <TextElement class="folder-path-without-name" text=""/>
-                        <TextElement class="folder-name" text=""/>
+                        <TextElement class="folder-path-without-name"/>
+                        <TextElement class="folder-name"/>
                     </VisualElement>
                     <TextElement class="folder-number" text="0"/>
                 </VisualElement>
@@ -147,24 +145,24 @@
         </VisualElement>
 
         <VisualElement name="info-section">
-            <TextElement class="section-label" text="info &amp; console"/>
+            <TextElement name="info-section-label" class="section-label"/>
 
             <VisualElement name="photo-details">
                 <VisualElement name="photo-details-labels">
-                    <TextElement name="file-name-info-label" text="file name:"/>
-                    <TextElement name="file-size-info-label" text="file size:"/>
-                    <TextElement name="file-path-info-label" text="file path:"/>
+                    <TextElement name="file-name-info-label"/>
+                    <TextElement name="file-size-info-label"/>
+                    <TextElement name="file-path-info-label"/>
                 </VisualElement>
 
                 <VisualElement name="photo-details-data">
-                    <TextElement name="file-name-info-data" text=""/>
-                    <TextElement name="file-size-info-data" text=""/>
-                    <TextElement name="file-path-info-data" text=""/>
+                    <TextElement name="file-name-info-data"/>
+                    <TextElement name="file-size-info-data"/>
+                    <TextElement name="file-path-info-data"/>
                 </VisualElement>
             </VisualElement>
 
             <VisualElement name="console-message">
-                <TextElement name="console-message-data" text=""/>
+                <TextElement name="console-message-data"/>
             </VisualElement>
             
         </VisualElement>
