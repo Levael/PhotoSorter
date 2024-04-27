@@ -5,7 +5,7 @@
   "instruction_1": "1. Choose source folder (which to sort)",
   "instruction_2": "2. Choose destination folder(s) (to where sort)",
   "instruction_3": "3. Press key on keyboard according to folder number to move file",
-  "instruction_4": "4. You can always change any destination or source",
+  "instruction_4": "4. You can always change or create any destination or source folder",
   "instruction_5": "5. Press SPACE to skip current file",
   "instruction_6": "6. Press BACKSPACE to undo last action",
   "instruction_7": "7. To exit press ‘X’ icon in the upper right corner or Esc button",

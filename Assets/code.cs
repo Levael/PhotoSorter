@@ -5,13 +5,8 @@ using UnityEngine.UIElements;
 using Newtonsoft.Json;
 using System;
 using System.IO;
-using System.Reflection;
 using SFB;
 using System.Linq;
-using System.Xml.Linq;
-using Newtonsoft.Json.Linq;
-using UnityEditor;
-using UnityEditor.UIElements;
 
 public class Main : MonoBehaviour
 {
