@@ -171,14 +171,12 @@ public class Main : MonoBehaviour
             }
 
             MoveFileToFolder(folderPath);
+            DisplayNextImage();
         }
         catch (Exception e)
         {
             TriggerFlash(foldersHandler.GetFolderUiNameByKeyCode(keyCode), "bad-status");
         }
-
-        DisplayNextImage();
-
     }
 
     private void ProcessChooseSourceFolderCommand(ClickEvent clickEvent)
@@ -483,7 +481,7 @@ public class Main : MonoBehaviour
     {
         if (String.IsNullOrEmpty(folderPath)) return;
 
-        string[] imageExtensions = new string[] { "*.jpg", "*.jpeg", "*.png", "*.bmp", "*.gif" };
+        string[] imageExtensions = new string[] { "*.jpg", "*.jpeg", "*.png", "*.gif" };    // "*.bmp", "*.svg"
         imagesBlob = new Queue<string>(imageExtensions.SelectMany(ext => Directory.GetFiles(folderPath, ext)).Take(100));
     }
 
