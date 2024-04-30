@@ -1,5 +1,4 @@
 /* MAIN & COMMON */
-
 :root {
 	--window-color				:	#2F2F2F;    /* dark gray */
     --text-panels-color         :   #474747;    /* gray */
@@ -55,6 +54,10 @@ TextElement {
     margin-right: 3px;
     color: var(--secondary-font-color);
     font-size: 11px;
+}
+
+.hiddenElement {
+    display: none;
 }
 
 
@@ -144,7 +147,7 @@ TextElement {
     padding-top: 10px;
 }
 
-#clear-choices-btn-wrapper, .language-btn {
+#clear-choices-btn-wrapper, .language-btn, .choose-theme-icon-wrapper {
     background-color: var(--buttons-color);
 }
 
@@ -163,20 +166,50 @@ TextElement {
 }
 
 
-#choose-language-btns {
+
+#theme-languages-btns-wrapper {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
 }
 
-.language-btn {
+#choose-language-btns, #choose-theme-btns {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-left: 20px;
+}
+
+.language-btn, .choose-theme-icon-wrapper {
     font-size: 12px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     margin: 0 5px;
     height: 20px;
     width: 25px;
+    justify-content: center;
+    align-items: center;
 }
+
+
+#light-theme-icon, #dark-theme-icon {
+    background-size: contain;
+	background-repeat: no-repeat;
+    background-position: center center;
+
+    width: 80%;
+    height: 80%;
+}
+
+#light-theme-icon {
+    background-image: url('/Assets/Images/light-sun-icon.png');
+}
+
+#dark-theme-icon {
+    background-image: url('/Assets/Images/light-moon-icon.png');
+}
+	
+
 
 .chosenOption {
     border-width: 1px;
@@ -260,7 +293,7 @@ TextElement {
 
 /* info-section */
 
-#photo-details, #console-message {
+#photo-details, #console-messages {
     display: flex;
     width: 100%;
     height: 100%;
@@ -298,7 +331,7 @@ TextElement {
 
 
 
-#console-message {
+#console-messages {
     display: flex;
     justify-content: space-around;
     flex-direction: column;
@@ -306,21 +339,20 @@ TextElement {
     padding-top: 5px;
 }
 
-#console-message TextElement {
+#console-messages TextElement {
     -unity-text-align: middle-left;
     text-overflow: ellipsis;
     overflow: hidden;
     font-size: 16px;
-}
-
-#console-message-label {
-    height: 30%;
-}
-
-#console-message-data {
-    padding-right: 3px;
     -unity-font-style: bold;
-    height: 70%;
+}
+
+#out-of-files-warning-message {
+    color: var(--warning-status-color);
+}
+
+#error-while-opening-file-message, #error-while-moving-file-message {
+    color: var(--bad-status-color);
 }
 
 

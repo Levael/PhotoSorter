@@ -11,12 +11,13 @@
   "instruction_7": "7. To exit press ‘X’ icon in the upper right corner or Esc button",
   "instruction_8": "8. Keep an eye on the console for messages (bottom left)",
   "noFilesWarning": "Out of files",
+  "failedToMoveFileError": "Couldn't move the file",
   "failedToLoadFileError": "Failed to load image",
   "darkThemeBtnTooltip": "dark mode",
   "lightThemeBtnTooltip": "light mode",
   "ruLangBtnTooltip": "русский язык",
   "enLangBtnTooltip": "english language",
-  "fileNameLabel": "mame",
+  "fileNameLabel": "name",
   "filePathLabel": "path",
   "fileSizeLabel": "size"
 }

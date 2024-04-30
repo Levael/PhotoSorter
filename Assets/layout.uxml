@@ -33,14 +33,28 @@
             </VisualElement>
 
             <VisualElement name="control-btns">
+
                 <VisualElement name="clear-choices-btn-wrapper">
                     <TextElement name="clear-choices-btn"/>  <!-- &lt;size=&quot;14&quot;&gt;TEXT&lt;/size&gt; -->
                 </VisualElement>
 
-                <VisualElement name="choose-language-btns">
-                    <TextElement name="ru-lang-btn" class="language-btn" text="ru"/>
-                    <TextElement name="en-lang-btn" class="language-btn" text="en"/>
+                <VisualElement name="theme-languages-btns-wrapper">
+                    <VisualElement name="choose-language-btns">
+                        <TextElement name="ru-lang-btn" class="language-btn" text="ru"/>
+                        <TextElement name="en-lang-btn" class="language-btn" text="en"/>
+                    </VisualElement>
+
+                    <VisualElement name="choose-theme-btns">
+                        <VisualElement class="choose-theme-icon-wrapper" name="light-theme-btn">
+                            <Image name="light-theme-icon"/>
+                        </VisualElement>
+
+                        <VisualElement class="choose-theme-icon-wrapper" name="dark-theme-btn">
+                            <Image name="dark-theme-icon"/>
+                        </VisualElement>
+                    </VisualElement>
                 </VisualElement>
+
             </VisualElement>
         </VisualElement>
 
@@ -53,7 +67,7 @@
                 </VisualElement>
 
                 <VisualElement class="source-folder-icon-wrapper">
-                    <Image name="source-folder-icon" scale-mode="ScaleToFit" />
+                    <Image name="source-folder-icon"/>
                 </VisualElement>
 
             </VisualElement>
@@ -160,8 +174,10 @@
                 </VisualElement>
             </VisualElement>
 
-            <VisualElement name="console-message">
-                <TextElement name="console-message-data"/>
+            <VisualElement name="console-messages">
+                <TextElement name="out-of-files-warning-message"/>
+                <TextElement name="error-while-opening-file-message"/>
+                <TextElement name="error-while-moving-file-message"/>
             </VisualElement>
             
         </VisualElement>

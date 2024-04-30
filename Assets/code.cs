@@ -31,7 +31,7 @@ public class Main : MonoBehaviour
     private string _configFilePath = "Assets/last_selected_folders.json";
     private Queue<string> imagesBlob = new();
     private List<VisualElement> foldersBtns;
-    private TextElement console;
+    private VisualElement console;
     
     private Dictionary<int, string> keyCodeToFolderPath;
     private Dictionary<string, string> uiNameToFolderPath;
@@ -61,7 +61,7 @@ public class Main : MonoBehaviour
         uiImageSizeElement = uiRoot.Q<TextElement>("file-size-info-data");
 
         foldersBtns = uiRoot.Query<VisualElement>(className: "destination-folder").ToList();
-        console = uiRoot.Query<TextElement>("console-message-data");
+        console = uiRoot.Query<VisualElement>("console-messages");
 
 
         // event listeners
@@ -105,7 +105,9 @@ public class Main : MonoBehaviour
         Application.targetFrameRate = 30;
 
         ChangeLanguage(configHandler.chosenLanguage);
+        //SetTheme(configHandler.chosenTheme);
         FillUiWithDataFromConfig();
+        HideChildrenElements(console);
 
         if (configHandler.sourceFolderFullName != null)
         {
@@ -234,6 +236,21 @@ public class Main : MonoBehaviour
 
     // UI RELATED
 
+    // doesn't work for now
+    private void SetTheme(string theme)
+    {
+        var dict = new Dictionary<string, string>()
+        {
+            { "dark", "DarkTheme.uss"},
+            { "light", "LightTheme.uss"}
+        };
+        var fileName = dict[theme];
+        var themeStyleSheet = Resources.Load<StyleSheet>(fileName);
+
+        uiRoot.styleSheets.Clear();
+        uiRoot.styleSheets.Add(themeStyleSheet);
+    }
+
     private LanguageHandler LoadLanguage(string language)
     {
         var dict = new Dictionary<string, string>()
@@ -268,6 +285,14 @@ public class Main : MonoBehaviour
             uiRoot.Q<TextElement>("en-lang-btn").AddToClassList("chosenOption");
             uiRoot.Q<TextElement>("ru-lang-btn").RemoveFromClassList("chosenOption");
         } 
+    }
+
+    private void HideChildrenElements(VisualElement root)
+    {
+        foreach (var child in root.Children())
+        {
+            child.AddToClassList("hiddenElement");
+        }
     }
 
     private void CallOnceWhenUiIsReady(GeometryChangedEvent evt)
@@ -327,32 +352,49 @@ public class Main : MonoBehaviour
 
     private void FillUiWithDataFromLanguage()
     {
-        var dict = languageTemplate.uiElementNameToFieldNameMap;
-        foreach (var dataPair in dict)
+        foreach (var dataPair in languageTemplate.uiTextElementNameToFieldNameMap)
         {
-            string fieldName = dataPair.Value;
-            string uiElementKey = dataPair.Key;
+            UpdateUIElement(dataPair, "text");
+        }
 
-            var fieldInfo = typeof(LanguageHandler).GetField(fieldName);
-            if (fieldInfo != null)
-            {
-                string localizedText = fieldInfo.GetValue(languageTemplate) as string;
-                var uiElement = uiRoot.Q<TextElement>(uiElementKey);
-                if (uiElement != null)
-                {
-                    uiElement.text = localizedText;
-                }
-                else
-                {
-                    Debug.Log($"UI element not found for key: {uiElementKey}");
-                }
-            }
-            else
-            {
-                Debug.Log($"Field not found for name: {fieldName}");
-            }
+        foreach (var dataPair in languageTemplate.uiTooltipElementNameToFieldNameMap)
+        {
+            UpdateUIElement(dataPair, "tooltip");
         }
     }
+
+    private void UpdateUIElement(KeyValuePair<string, string> dataPair, string property)
+    {
+        string fieldName = dataPair.Value;
+        string uiElementKey = dataPair.Key;
+
+        var fieldInfo = typeof(LanguageHandler).GetField(fieldName);
+        if (fieldInfo == null)
+        {
+            Debug.Log($"Field not found for name: {fieldName}");
+            return;
+        }
+
+        string localizedValue = fieldInfo.GetValue(languageTemplate) as string;
+        var uiElement = uiRoot.Q<VisualElement>(uiElementKey);
+        if (uiElement == null)
+        {
+            Debug.Log($"UI element not found for key: {uiElementKey}");
+            return;
+        }
+
+        if (property == "text" && uiElement is TextElement textElement)
+        {
+            textElement.text = localizedValue;
+            //print(textElement.text);
+        }
+        else if (property == "tooltip")
+        {
+            uiElement.tooltip = localizedValue;
+            //print(uiElement.tooltip);
+        }
+    }
+
 
     private void ClearChoices()
     {
@@ -381,26 +423,23 @@ public class Main : MonoBehaviour
         target.RemoveFromClassList(className);
     }
 
-    private void PrintWarning(string message)
+    private void PrintWarning_OutOfFiles()
     {
-        console.ClearClassList();
-        console.AddToClassList("warning-status");
-        console.text = message;
+        HideChildrenElements(console);
+        console.Q<TextElement>("out-of-files-warning-message").RemoveFromClassList("hiddenElement");
     }
 
-    private void PrintError(string message)
+    private void PrintError_OpenFile()
     {
-        console.ClearClassList();
-        console.AddToClassList("bad-status");
-        console.text = message;
+        HideChildrenElements(console);
+        console.Q<TextElement>("error-while-opening-file-message").RemoveFromClassList("hiddenElement");
     }
 
-    private void ClearConsole()
+    private void PrintError_MoveFile()
     {
-        console.ClearClassList();
-        console.text = "";
+        HideChildrenElements(console);
+        console.Q<TextElement>("error-while-moving-file-message").RemoveFromClassList("hiddenElement");
     }
-
 
 
     // IMAGES RELATED
@@ -415,7 +454,7 @@ public class Main : MonoBehaviour
         if (imagesBlob.Count == 0)
         {
             ClearImage();
-            PrintWarning("Out of files");
+            PrintWarning_OutOfFiles();
 
             return;
         }
@@ -432,7 +471,7 @@ public class Main : MonoBehaviour
         uiImageSizeElement.text = $"{(new FileInfo(currentPhotoFullPath).Length / 1024.0 / 1024.0):F2} MB";
 
         DisplayImage(currentPhotoFullPath);
-        ClearConsole();
+        HideChildrenElements(console);
     }
 
     private void DisplayPreviousImage()
@@ -449,7 +488,7 @@ public class Main : MonoBehaviour
         uiImageSizeElement.text = $"{(new FileInfo(currentPhotoFullPath).Length / 1024.0 / 1024.0):F2} MB";
 
         DisplayImage(currentPhotoFullPath);
-        ClearConsole();
+        HideChildrenElements(console);
     }
 
     private void DisplayImage(string fileFullPath)
@@ -565,7 +604,7 @@ public class Main : MonoBehaviour
         }
         else
         {
-            PrintError($"Failed to load image: {filePath}");
+            PrintError_OpenFile();
             return null;
         }
     }

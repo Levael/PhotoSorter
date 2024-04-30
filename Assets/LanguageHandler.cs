@@ -18,6 +18,7 @@ public class LanguageHandler
     
     public string noFilesWarning;
     public string failedToLoadFileError;
+    public string failedToMoveFileError;
     
     public string darkThemeBtnTooltip;
     public string lightThemeBtnTooltip;
@@ -30,7 +31,7 @@ public class LanguageHandler
 
 
     [JsonIgnore]
-    public Dictionary<string, string> uiElementNameToFieldNameMap = new()
+    public Dictionary<string, string> uiTextElementNameToFieldNameMap = new()
     {
         {"instructions-section-label", "instructionsAndSettingsLabel"},
         {"info-section-label", "infoAndConsoleLabel"},
@@ -45,17 +46,22 @@ public class LanguageHandler
         {"instruction_7", "instruction_7"},
         {"instruction_8", "instruction_8"},
 
-        /*{null, "noFilesWarning"},
-        {null, "failedToLoadFileError"},
-
-        {null, "darkThemeBtnTooltip"},
-        {null, "lightThemeBtnTooltip"},
-        {null, "ruLangBtnTooltip"},
-        {null, "enLangBtnTooltip"},*/
-
         {"file-name-info-label", "fileNameLabel"},
         {"file-path-info-label", "filePathLabel"},
         {"file-size-info-label", "fileSizeLabel"},
+
+        {"out-of-files-warning-message", "noFilesWarning"},
+        {"error-while-opening-file-message", "failedToLoadFileError"},
+        {"error-while-moving-file-message", "failedToMoveFileError"},
+    };
+
+    [JsonIgnore]
+    public Dictionary<string, string> uiTooltipElementNameToFieldNameMap = new()
+    {
+        {"dark-theme-btn", "darkThemeBtnTooltip"},
+        {"light-theme-btn", "lightThemeBtnTooltip"},
+        {"ru-lang-btn", "ruLangBtnTooltip"},
+        {"en-lang-btn", "enLangBtnTooltip"}
     };
 
 }
