@@ -10,7 +10,7 @@ bugs:
 	- add chech for 'null' in 'DisplayImage'
 
 todo:
-	- devide GIT repo to 2: development (with code only) and production (with built version only)
+	- make a release publish for final result only and delete Build folder from development
 	- add GIF, SVG, BMP add VIDEO support
 	- somehow add 'bold' style inside TextElement strings
 	- clean and refactor codebase (especially UI related) (+thing about new data structure 'tuple to tuple dictionary')
