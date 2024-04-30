@@ -16,6 +16,7 @@ todo:
 	- clean and refactor codebase (especially UI related) (+thing about new data structure 'tuple to tuple dictionary')
 	- publish final version
 	- redesign 'close' btn and add 'minimize' btn (like in windows)
+	- add 'type' to "file info"
 
 fixed / done:
 	- implement language change
