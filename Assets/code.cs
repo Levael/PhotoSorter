@@ -295,8 +295,8 @@ public class Main : MonoBehaviour
     {
         var dict = new Dictionary<string, string>()
         {
-            { "en", "Assets/Resources/en.json" },
-            { "ru", "Assets/Resources/ru.json" },
+            { "en", Path.Combine(Application.streamingAssetsPath, "en.json") },
+            { "ru", Path.Combine(Application.streamingAssetsPath, "ru.json") },
         };
 
         var settings = new JsonSerializerSettings
