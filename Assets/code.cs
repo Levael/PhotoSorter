@@ -27,8 +27,9 @@ public class Main : MonoBehaviour
     private TextElement uiImageNameElement;
     private TextElement uiImagePathElement;
     private TextElement uiImageSizeElement;
-
-    private string _configFilePath = "Assets/last_selected_folders.json";
+    
+    private string _defaultConfigFilePath;
+    private string _configFilePath;
     private Queue<string> imagesBlob = new();
     private List<VisualElement> foldersBtns;
     private VisualElement console;
@@ -41,8 +42,11 @@ public class Main : MonoBehaviour
 
     void Awake()
     {
+        _defaultConfigFilePath = Path.Combine(Application.streamingAssetsPath, "defaultConfig.json");
+        _configFilePath = Path.Combine(Application.persistentDataPath, "config.json");
+
         // object for handling folders logic and json data
-        configHandler = LoadDataFromJson<ConfigHandler>(_configFilePath);
+        configHandler = LoadConfig();
         configHandler.ValidatePaths();
         //languageTemplate = LoadLanguage(configHandler.chosenLanguage);
 
@@ -127,7 +131,7 @@ public class Main : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        UpdateDataInJson(_configFilePath, configHandler);
+        UpdateConfig();
     }
 
 
@@ -269,12 +273,30 @@ public class Main : MonoBehaviour
             
     }
 
+    private ConfigHandler LoadConfig()
+    {
+        if (File.Exists(_configFilePath))
+        {
+            //Debug.Log("Loading config from Persistent Data Path.");
+            return LoadDataFromJson<ConfigHandler>(_configFilePath);
+        }
+        else
+        {
+            //Debug.Log("Config not found in Persistent Data, loading from StreamingAssets.");
+            return LoadDataFromJson<ConfigHandler>(_defaultConfigFilePath);
+        }
+    }
+    private void UpdateConfig()
+    {
+        UpdateDataInJson(_configFilePath, configHandler);
+    }
+
     private LanguageHandler LoadLanguage(string language)
     {
         var dict = new Dictionary<string, string>()
         {
-            { "en", "Assets/en.json" },
-            { "ru", "Assets/ru.json" },
+            { "en", "Assets/Resources/en.json" },
+            { "ru", "Assets/Resources/ru.json" },
         };
 
         var settings = new JsonSerializerSettings
@@ -669,7 +691,6 @@ public class Main : MonoBehaviour
             }
 
             string jsonString = File.ReadAllText(filePath);
-            //Debug.Log($"jsonString: {jsonString}");
             return JsonConvert.DeserializeObject<T>(jsonString, settings) ?? new T();
         }
         catch (Exception ex)
