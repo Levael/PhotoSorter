@@ -1,24 +1,4 @@
 /* MAIN & COMMON */
-:root {
-	--window-color				:	#2F2F2F;    /* dark gray */
-    --text-panels-color         :   #474747;    /* gray */
-
-	--main-font-color			:	#E3E3E3;    /* whitish */
-	--secondary-font-color		:	#A5A5A5;    /* weak light gray */
-
-	--buttons-color			    :	#666666;    /* light gray */
-	--buttons-hover-color		:	#747474;
-	--buttons-disabled-color    :	#4f4f4f;
-	--buttons-active-color		:	#B9CDFF;
-
-    --button-number-color       :   #474747;    /* gray */
-
-    --image-border-color        :   #2F2F2F;    /* dark */
-
-	--good-status-color			:	#3CAEDF;    /* blue */
-	--bad-status-color			:	#FC5858;    /* red */
-	--warning-status-color		:	#FCBA58;    /* orange */
-}
 
 #wrapper {
     width: 100%;
@@ -75,7 +55,7 @@ TextElement {
 }
 
 #close-app-btn Image {
-    background-image: url('/Assets/Images/close-app-icon.png');
+    /* background-image: url('/Assets/Images/close-app-icon.png'); */
 
 	background-size: contain;
 	background-repeat: no-repeat;
@@ -201,13 +181,13 @@ TextElement {
     height: 80%;
 }
 
-#light-theme-icon {
+/* #light-theme-icon {
     background-image: url('/Assets/Images/light-sun-icon.png');
 }
 
 #dark-theme-icon {
     background-image: url('/Assets/Images/light-moon-icon.png');
-}
+} */
 	
 
 

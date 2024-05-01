@@ -1,0 +1,34 @@
+@import url("unity-theme://default");
+
+:root {
+	--window-color				:	#F4F4F4;    /* bright almost white */
+    --text-panels-color         :   #DEDEDE;    /* light gray */
+
+	--main-font-color			:	#161616;    /* almost black */
+	--secondary-font-color		:	#9F9F9F;    /* weak light gray */
+
+	--buttons-color			    :	#EAEAEA;    /* lightest gray */
+	--buttons-hover-color		:	#747474;
+	--buttons-disabled-color    :	#4f4f4f;
+	--buttons-active-color		:	#B9CDFF;
+
+    --button-number-color       :   #DEDEDE;    /* light gray */
+
+    --image-border-color        :   #F4F4F4;    /* bright almost white */
+
+	--good-status-color			:	#3CAEDF;    /* blue */
+	--bad-status-color			:	#FC5858;    /* red */
+	--warning-status-color		:	#FCBA58;    /* orange */
+}
+
+#close-app-btn Image {
+    background-image: url('/Assets/Images/close-app-icon.png');
+}
+
+#light-theme-icon {
+    background-image: url('/Assets/Images/dark-sun-icon.png');
+}
+
+#dark-theme-icon {
+    background-image: url('/Assets/Images/dark-moon-icon.png');
+}

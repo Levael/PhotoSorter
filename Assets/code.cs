@@ -67,8 +67,12 @@ public class Main : MonoBehaviour
         // event listeners
         uiRoot.RegisterCallback<KeyDownEvent>(KeyWasPressedEvent);
         uiRoot.Q<VisualElement>("close-app-btn").RegisterCallback<ClickEvent>(evt => { Application.Quit(); });
+
         uiRoot.Q<TextElement>("ru-lang-btn").RegisterCallback<ClickEvent>(evt => { ChangeLanguage("ru"); });
         uiRoot.Q<TextElement>("en-lang-btn").RegisterCallback<ClickEvent>(evt => { ChangeLanguage("en"); });
+        uiRoot.Q<VisualElement>("light-theme-btn").RegisterCallback<ClickEvent>(evt => { SetTheme("light"); });
+        uiRoot.Q<VisualElement>("dark-theme-btn").RegisterCallback<ClickEvent>(evt => { SetTheme("dark"); });
+
         uiRoot.Q<VisualElement>("clear-choices-btn-wrapper").RegisterCallback<ClickEvent>(evt => { ClearChoices(); });
         uiRoot.Q<VisualElement>("source-folder").RegisterCallback<ClickEvent>(ProcessChooseSourceFolderCommand);
         foldersBtns.ForEach((element) =>
@@ -105,7 +109,7 @@ public class Main : MonoBehaviour
         Application.targetFrameRate = 30;
 
         ChangeLanguage(configHandler.chosenLanguage);
-        //SetTheme(configHandler.chosenTheme);
+        SetTheme(configHandler.chosenTheme);
         FillUiWithDataFromConfig();
         HideChildrenElements(console);
 
@@ -236,19 +240,33 @@ public class Main : MonoBehaviour
 
     // UI RELATED
 
-    // doesn't work for now
     private void SetTheme(string theme)
     {
-        var dict = new Dictionary<string, string>()
-        {
-            { "dark", "DarkTheme.uss"},
-            { "light", "LightTheme.uss"}
-        };
-        var fileName = dict[theme];
-        var themeStyleSheet = Resources.Load<StyleSheet>(fileName);
+        configHandler.chosenTheme = theme;
 
         uiRoot.styleSheets.Clear();
-        uiRoot.styleSheets.Add(themeStyleSheet);
+        uiRoot.styleSheets.Add(Resources.Load<StyleSheet>("style"));
+
+        if (theme == "dark")
+        {
+            uiRoot.styleSheets.Add(Resources.Load<StyleSheet>("DarkTheme"));
+
+            uiRoot.Q<VisualElement>("dark-theme-btn").AddToClassList("chosenOption");
+            uiRoot.Q<VisualElement>("light-theme-btn").RemoveFromClassList("chosenOption");
+        }
+        else if (theme == "light")
+        {
+            uiRoot.styleSheets.Add(Resources.Load<StyleSheet>("LightTheme"));
+
+            uiRoot.Q<VisualElement>("light-theme-btn").AddToClassList("chosenOption");
+            uiRoot.Q<VisualElement>("dark-theme-btn").RemoveFromClassList("chosenOption");
+        }
+        else
+        {
+            print("error while chaanging theme");
+            configHandler.chosenTheme = "dark"; // default
+        }
+            
     }
 
     private LanguageHandler LoadLanguage(string language)
@@ -590,7 +608,7 @@ public class Main : MonoBehaviour
     {
         if (String.IsNullOrEmpty(folderPath)) return;
 
-        string[] imageExtensions = new string[] { "*.jpg", "*.jpeg", "*.png", "*.gif" };    // "*.bmp", "*.svg"
+        string[] imageExtensions = new string[] { "*.jpg", "*.jpeg", "*.png" };    // "*.bmp", "*.svg", "*.gif" 
         imagesBlob = new Queue<string>(imageExtensions.SelectMany(ext => Directory.GetFiles(folderPath, ext)).Take(100));
     }
 

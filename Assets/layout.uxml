@@ -8,7 +8,9 @@
 
 
 <!-- STYLES ================================ -->
-<Style src="style.uss" />
+<!-- those are only for editor better view, they will be reinitialized in code -->
+<Style src="/Assets/Resources/style.uss"/>
+<Style src="/Assets/Resources/DarkTheme.tss"/>
 <!-- ======================================= -->
 
 
