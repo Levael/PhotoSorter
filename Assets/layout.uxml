@@ -167,12 +167,14 @@
                     <TextElement name="file-name-info-label"/>
                     <TextElement name="file-size-info-label"/>
                     <TextElement name="file-path-info-label"/>
+                    <TextElement name="file-type-info-label"/>
                 </VisualElement>
 
                 <VisualElement name="photo-details-data">
                     <TextElement name="file-name-info-data"/>
                     <TextElement name="file-size-info-data"/>
                     <TextElement name="file-path-info-data"/>
+                    <TextElement name="file-type-info-data"/>
                 </VisualElement>
             </VisualElement>
 
