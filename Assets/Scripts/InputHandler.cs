@@ -8,7 +8,7 @@ public class InputHandler : MonoBehaviour
     private Main main;
     private UiHandler uiHandler;
 
-    private Dictionary<int, Action<int>> keyCodeToFunctionMap;
+    //private Dictionary<int, Action<int>> keyCodeToFunctionMap;
 
 
     void Awake()
@@ -17,7 +17,7 @@ public class InputHandler : MonoBehaviour
         main = GetComponent<Main>();
 
 
-        keyCodeToFunctionMap = new() {
+        /*keyCodeToFunctionMap = new() {
             { 49, main.ProcessMoveFileCommand },         // 1
             { 50, main.ProcessMoveFileCommand },         // 2
             { 51, main.ProcessMoveFileCommand },         // 3
@@ -32,7 +32,7 @@ public class InputHandler : MonoBehaviour
             { 8,  main.ProcessUndoLastActionCommand },   // backspace
             { 32, main.ProcessSkipFileCommand },         // space
             { 27, main.ProcessExitAppCommand },          // esc
-        };
+        };*/
     }
 
     void Start()
@@ -42,11 +42,26 @@ public class InputHandler : MonoBehaviour
 
 
     // PRIVATE
-    private void KeyWasPressedEvent(KeyDownEvent keyDownEvent)
+    /*private void KeyWasPressedEvent(KeyDownEvent keyDownEvent)
     {
         var keyCode = (int)keyDownEvent.keyCode;
 
         if (keyCodeToFunctionMap.ContainsKey(keyCode))
             keyCodeToFunctionMap[keyCode].Invoke(keyCode);
+    }*/
+    
+    private void KeyWasPressedEvent(KeyDownEvent keyDownEvent)
+    {
+        var keyCode = (int)keyDownEvent.keyCode;
+        if (keyCode == 0) return; // Unity error (kinda double pressing)
+
+        try
+        {
+            main.interlinkedCollection.FindRelatedSet(keyCode).keyboardPressCallback(keyCode);
+        }
+        catch
+        {
+            // If pressed unrelated key -- fine, do nothing
+        }
     }
 }

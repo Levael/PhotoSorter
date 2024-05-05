@@ -2,89 +2,139 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Custom
+namespace CustomDataStructures
 {
-    
-    public class CustomDataStructure<T>
+    /// <summary>
+    /// Represents a collection that maintains a set of elements, allowing access to each element by any of its properties marked as a key
+    /// </summary>
+    public class InterlinkedCollection<T> : IEnumerable<T> where T : new()
     {
         private Dictionary<object, Guid> elementToIdMap;    // here 'object' is one element from 'Data' ('Data' of <T> type)
-        private Dictionary<Guid, object> idToDataMap;       // here 'object' is the 'Data' itself
+        private Dictionary<Guid, T> idToDataMap;
 
-        public CustomDataStructure(params T[] elements)
+        public InterlinkedCollection(params T[] elements)
         {
             elementToIdMap = new();
             idToDataMap = new();
+        }
 
-            foreach (T element in elements)
+        public T FindRelatedSet(object key)
+        {
+            if (!elementToIdMap.TryGetValue(key, out Guid id))
             {
-                if (!ElementIsValid(element))
+                throw new KeyNotFoundException($"The key was not found in the collection: {key}");
+            }
+            return idToDataMap[id];
+        }
+
+        public void Add(T element)
+        {
+            var id = Guid.NewGuid();
+            idToDataMap[id] = element;
+            var properties = typeof(T).GetProperties();
+
+            foreach (var property in properties)
+            {
+                var keyProperty = property.GetCustomAttribute<CanBeKeyAttribute>();
+                if (keyProperty == null || !keyProperty.CanBeKey)
+                    continue;
+
+                var key = property.GetValue(element);
+                if (key == null)
+                    continue;
+
+                if (elementToIdMap.ContainsKey(key))
                 {
-                    throw new ArgumentException("'CustomDataStructure' got invalid input");
+                    throw new ArgumentException($"Duplicate key found: {key}. Key must be unique.");
                 }
 
-                PropertyInfo[] properties = typeof(T).GetProperties();
-                // add to 'elementToIdMap' proper element
+                elementToIdMap[key] = id;
             }
         }
 
-
-
-        private bool ElementIsValid(T element)
+        public void Update(string key, string propertyName, object newValue)
         {
-            PropertyInfo[] properties = typeof(T).GetProperties();
-            foreach (PropertyInfo property in properties)
+            if (!elementToIdMap.TryGetValue(key, out Guid id))
+                throw new KeyNotFoundException($"No entry found for key: {key}");
+
+            T element = idToDataMap[id];
+            var property = typeof(T).GetProperty(propertyName);
+
+            if (property == null)
+                throw new ArgumentException($"Property '{propertyName}' not found on type {typeof(T).Name}");
+
+            if (!property.CanWrite)
+                throw new ArgumentException($"Property '{propertyName}' is not writable.");
+
+            // Check if the property has CanBeKey attribute and handle key updates
+            var keyAttr = property.GetCustomAttribute<CanBeKeyAttribute>();
+            object oldKey = null;
+            if (keyAttr != null && keyAttr.CanBeKey)
             {
-                Type propertyType = property.PropertyType;
-                if (!propertyType.IsGenericType)                                    return false;
-                if (propertyType.GetGenericTypeDefinition() != typeof(ValueTuple))  return false;
-
-                Type[] argumentTypes = propertyType.GetGenericArguments();
-                if (propertyType.GetGenericArguments().Length != 2)                 return false;
-                if (argumentTypes[1] != typeof(bool))                               return false;
-
+                oldKey = property.GetValue(element);
+                if (oldKey.Equals(key)) // Only need to update if the key itself is being changed
+                {
+                    elementToIdMap.Remove(oldKey);
+                }
             }
 
-            return true;
+            // Set the new value
+            property.SetValue(element, newValue);
+
+            // Re-add the key if it was a key property
+            if (oldKey != null && keyAttr != null && keyAttr.CanBeKey)
+            {
+                elementToIdMap[property.GetValue(element)] = id;
+            }
         }
 
-        private bool CanBeKey((string value, bool canBeKey) elementProperty)
-        {
-            // todo
 
-            return false;
+        public IEnumerator<T> GetEnumerator()
+        {
+            return idToDataMap.Values.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
         }
     }
 
 
-    public class CustomTuple
+    /// <summary>
+    /// Specifies that a property of an object can be used as a key in an InterlinkedCollection.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public class CanBeKeyAttribute : Attribute
     {
-        public (string value, bool canBeKey) name { get; set; }
-        public (int value, bool canBeKey) age { get; set; }
-        public (bool value, bool canBeKey) isNormal { get; set; }
+        public bool CanBeKey { get; private set; }
 
-
-        public CustomTuple(string name, int age, bool isNormal)
+        public CanBeKeyAttribute(bool canBeKey)
         {
-            this.name       = (name,        canBeKey: true);
-            this.age        = (age,         canBeKey: true);
-            this.isNormal   = (isNormal,    canBeKey: false);
+            CanBeKey = canBeKey;
         }
     }
 
-
-
-    public class Main
+    /// <summary>
+    /// Represents an element in an InterlinkedCollection with specified properties that can be used as keys.
+    /// </summary>
+    /*public class ComprehensiveDictionary
     {
-        CustomDataStructure<CustomTuple> customDataStructure;
+        [CanBeKey(true)]
+        public string name { get; set; }
 
-        public Main()
+        [CanBeKey(true)]
+        public int age { get; set; }
+
+        [CanBeKey(false)]
+        public bool isNormal { get; set; }
+
+
+        public ComprehensiveDictionary(string name, int age, bool isNormal)
         {
-            customDataStructure = new(
-                new CustomTuple(name: "Hanna", age: 21, isNormal: false),
-                new CustomTuple(name: "Anna", age: 22, isNormal: false)
-            );
-
-            // here print to console something
+            this.name = name;
+            this.age = age;
+            this.isNormal = isNormal;
         }
-    }
+    }*/
 }
