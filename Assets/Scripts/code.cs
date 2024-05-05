@@ -13,13 +13,10 @@ public class Main : MonoBehaviour
     private ImagesHandler imagesHandler;
     private UiHandler uiHandler;
 
-    //private string currentSourceFolderPath;
-    //private string currentPhotoName;
-    //private string currentPhotoPathOnly;
-
+    public string currentFileOriginFullPath;        // updates from imagesHandler.ShowImage
+    public string currentFileDestinationFullPath;   // updates from main.ProcessMoveFileCommand
     public string lastFileOriginFullPath;
     public string lastFileDestinationFullPath;
-    
     
     
     private Dictionary<int, string> keyCodeToFolderPath;
@@ -41,22 +38,6 @@ public class Main : MonoBehaviour
     void Start()
     {
         Application.targetFrameRate = 30;   // no need in more
-
-        
-
-        ChangeLanguage(configHandler.chosenLanguage);
-        SetTheme(configHandler.chosenTheme);
-        FillUiWithDataFromConfig();
-        HideChildrenElements(console);
-
-        if (configHandler.sourceFolderFullName != null)
-        {
-            currentSourceFolderPath = configHandler.sourceFolderFullName;
-            uiRoot.RegisterCallback<GeometryChangedEvent>(CallOnceWhenUiIsReady);   // show image as soon as UI is ready
-        }
-
-        // temp
-        //Debug.Log(languageHandler.fields["instruction_1"]);
     }
 
     void Update() {}
@@ -69,7 +50,7 @@ public class Main : MonoBehaviour
 
     public void ProcessSkipFileCommand(int keyCode)
     {
-        DisplayNextImage();
+        imagesHandler.ShowNextImage();
     }
 
     public void ProcessUndoLastActionCommand(int keyCode)
@@ -82,32 +63,41 @@ public class Main : MonoBehaviour
 
 
         File.Move(lastFileDestinationFullPath, lastFileOriginFullPath);
-        DisplayPreviousImage();
+        imagesHandler.ShowPreviousImage();
 
         lastFileOriginFullPath = null;
         lastFileDestinationFullPath = null;
-
-        //Debug.Log("undo successfully");
     }
 
     public void ProcessMoveFileCommand(int keyCode)
     {
         try
         {
-            var folderPath = configHandler.GetFolderPathByKeyCode(keyCode);
+            var destinationFolderPath = configHandler.GetFolderPathByKeyCode(keyCode);
 
-            if (String.IsNullOrEmpty(folderPath))
+            if (String.IsNullOrEmpty(destinationFolderPath) || String.IsNullOrEmpty(currentFileOriginFullPath))
             {
-                TriggerFlash(configHandler.GetFolderUiNameByKeyCode(keyCode), "warning-status");
+                uiHandler.FlashFolderNumber(configHandler.GetFolderUiNameByKeyCode(keyCode), "warning-status");
                 return;
             }
 
-            MoveFileToFolder(folderPath);
-            DisplayNextImage();
+            currentFileDestinationFullPath = Path.Combine(destinationFolderPath, Path.GetFileName(currentFileOriginFullPath));
+
+
+            Debug.Log($"Moving from: {currentFileOriginFullPath}");
+            Debug.Log($"Moving to: {currentFileDestinationFullPath}");
+            FilesHandler.MoveFile(currentFileOriginFullPath, currentFileDestinationFullPath);
+
+            lastFileOriginFullPath = currentFileOriginFullPath;
+            lastFileDestinationFullPath = currentFileDestinationFullPath;
+
+            uiHandler.FlashFolderNumber(configHandler.GetFolderUiNameByKeyCode(keyCode), "good-status");
+            imagesHandler.ShowNextImage();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            TriggerFlash(configHandler.GetFolderUiNameByKeyCode(keyCode), "bad-status");
+            uiHandler.FlashFolderNumber(configHandler.GetFolderUiNameByKeyCode(keyCode), "bad-status");
+            Debug.LogError($"Error while moving file from 'ProcessMoveFileCommand': {ex}");
         }
     }
 
@@ -128,13 +118,12 @@ public class Main : MonoBehaviour
         var btnFolderPath = clickedBtnName.Q<TextElement>(className: "folder-path-without-name");
         var btnFolderName = clickedBtnName.Q<TextElement>(className: "folder-name");
 
-        configHandler.sourceFolderFullName = selectedFolderPath;
+        configHandler.fields.sourceFolderFullName = selectedFolderPath;
         btnFolderPath.text = Path.GetDirectoryName(selectedFolderPath);
         btnFolderName.text = Path.GetFileName(selectedFolderPath);
 
-        currentSourceFolderPath = configHandler.sourceFolderFullName;
-        imagesBlob.Clear();
-        DisplayNextImage();
+        imagesHandler.imagesBlob.Clear();
+        imagesHandler.ShowNextImage();
     }
 
     public void ProcessChooseDestinationFolderCommand(ClickEvent clickEvent)
@@ -148,6 +137,13 @@ public class Main : MonoBehaviour
 
         string selectedFolderPath = paths[0];
 
+        if (selectedFolderPath == configHandler.fields.sourceFolderFullName)
+        {
+            Debug.LogWarning("destination folder can't be your source folder");
+            return;
+        }
+
+
         var clickedBtnName = (VisualElement)clickEvent.currentTarget;
         var folderNumber = int.Parse(clickedBtnName.Q<TextElement>(className: "folder-number").text);
 
@@ -158,13 +154,4 @@ public class Main : MonoBehaviour
         btnFolderPath.text = Path.GetDirectoryName(selectedFolderPath);
         btnFolderName.text = Path.GetFileName(selectedFolderPath);
     }
-
-
-    lastFileOriginFullPath = Path.Combine(currentPhotoPathOnly, currentPhotoName);
-        lastFileDestinationFullPath = Path.Combine(folderPath, currentPhotoName);
-        
-
-            uiHandler.TriggerFlash(configHandler.GetFolderUiNameByFolderPath(folderPath), "good-status");
-        
-            uiHandler.TriggerFlash(configHandler.GetFolderUiNameByFolderPath(folderPath), "bad-status");
 }

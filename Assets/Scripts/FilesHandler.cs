@@ -20,8 +20,11 @@ public static class FilesHandler
 
         try
         {
-            if (!Directory.Exists(destinationFileFullName))
-                Directory.CreateDirectory(destinationFileFullName);
+            var dirPath = Path.GetDirectoryName(destinationFileFullName);
+
+            if (!Directory.Exists(dirPath))
+                Directory.CreateDirectory(dirPath);
+
 
             File.Move(originFileFullName, destinationFileFullName);
         }

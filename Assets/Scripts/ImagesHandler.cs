@@ -17,9 +17,9 @@ public class ImagesHandler : MonoBehaviour
     private Image backgroundImage;
     private Image mainImage;
 
-    private Queue<string> imagesBlob;
+    public Queue<string> imagesBlob;
     private int imagesBlobSize;
-    private string folderNameForCorruptedFiles;
+    public string folderNameForCorruptedFiles;
 
 
     void Awake()
@@ -64,12 +64,14 @@ public class ImagesHandler : MonoBehaviour
     {
         if (imagesBlob.Count == 0)
         {
-            LoadBunchOfImages(configHandler.sourceFolderFullName);
+            LoadBunchOfImages(configHandler.fields.sourceFolderFullName);
         }
 
         if (imagesBlob.Count == 0)
         {
             ClearImageAndItsData();
+            main.currentFileOriginFullPath = null;
+            main.currentFileDestinationFullPath = null;
             uiHandler.PrintWarning_OutOfFiles();
             return;
         }
@@ -79,7 +81,7 @@ public class ImagesHandler : MonoBehaviour
 
     public void ShowPreviousImage()
     {
-        ShowImage(main.lastFileDestinationFullPath);
+        ShowImage(main.lastFileOriginFullPath); // moved before showing
     }
 
 
@@ -102,9 +104,9 @@ public class ImagesHandler : MonoBehaviour
         {
             try
             {
-                var destinationForCorruptedFile = Path.Combine(configHandler.sourceFolderFullName, folderNameForCorruptedFiles);
+                var destinationForCorruptedFile = Path.Combine(configHandler.fields.sourceFolderFullName, folderNameForCorruptedFiles, Path.GetFileName(fileFullPath));
                 FilesHandler.MoveFile(fileFullPath, destinationForCorruptedFile);
-                Debug.LogError($"File moved to corrupted folder. Exception: {ex_1}");
+                Debug.LogWarning($"File moved to corrupted folder. Exception: {ex_1}");
             }
             catch (Exception ex_2)
             {
@@ -117,6 +119,8 @@ public class ImagesHandler : MonoBehaviour
             ShowNextImage();    // it's a recursion, but should be ok... I hope // this line is sooo muddy..... // TODO
             return;
         }
+
+        main.currentFileOriginFullPath = fileFullPath;
 
         uiHandler.FillImageInfo(
             name: Path.GetFileNameWithoutExtension(fileFullPath),

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 
 public class ConfigHandler_Fields
@@ -19,21 +22,25 @@ public class ConfigHandler_Fields
 
 public class ConfigHandler : MonoBehaviour
 {
-    private ConfigHandler_Fields configHandler_Fields;
+    private UiHandler uiHandler;
+
+    public ConfigHandler_Fields fields;
     private string _defaultConfigFilePath;
     private string _configFilePath;
 
-    public string chosenLanguage;
+    /*public string chosenLanguage;
     public string chosenTheme;
     public string sourceFolderFullName;
 
-    private string[] destinationFolderFullNames;
+    private string[] destinationFolderFullNames;*/
     private string[] destinationFolderUiNames;
     private Dictionary<int, int> keyCodeToFolderNumberMap;
 
 
     void Awake()
     {
+        uiHandler = GetComponent<UiHandler>();
+
         _defaultConfigFilePath = Path.Combine(Application.streamingAssetsPath, "defaultConfig.json");
         _configFilePath = Path.Combine(Application.persistentDataPath, "config.json");
 
@@ -47,6 +54,11 @@ public class ConfigHandler : MonoBehaviour
         {
             { 49, 1 }, { 50, 2 }, { 51, 3 }, { 52, 4 }, { 53, 5 }, { 54, 6 }, { 55, 7 }, { 56, 8 }, { 57, 9 }, { 48, 0 }
         };
+    }
+
+    void Start()
+    {
+        SetFoldersUiNames(uiHandler.destinationFolders);
     }
 
     void OnApplicationQuit()
@@ -65,32 +77,32 @@ public class ConfigHandler : MonoBehaviour
         if (File.Exists(_configFilePath))
         {
             //Debug.Log("Loading config from Persistent Data Path.");
-            configHandler_Fields = JsonHandler.LoadDataFromJson<ConfigHandler_Fields>(_configFilePath);
+            fields = JsonHandler.LoadDataFromJson<ConfigHandler_Fields>(_configFilePath);
         }
         else
         {
             //Debug.Log("Config not found in Persistent Data, loading from StreamingAssets.");
-            configHandler_Fields = JsonHandler.LoadDataFromJson<ConfigHandler_Fields>(_defaultConfigFilePath);
+            fields = JsonHandler.LoadDataFromJson<ConfigHandler_Fields>(_defaultConfigFilePath);
         }
 
         ValidatePaths();
     }
     private bool ReWrite()
     {
-        return JsonHandler.UpdateDataInJson(_configFilePath, configHandler_Fields);
+        return JsonHandler.UpdateDataInJson(_configFilePath, fields);
     }
 
     public void ValidatePaths()
     {
         // source folder check
-        if (!Directory.Exists(sourceFolderFullName))
-            sourceFolderFullName = null;
+        if (!Directory.Exists(fields.sourceFolderFullName))
+            fields.sourceFolderFullName = null;
 
         // destination folders check
-        for (int i = 0; i < destinationFolderFullNames.Length; i++)
+        for (int i = 0; i < fields.destinationFolderFullNames.Length; i++)
         {
-            if (!Directory.Exists(destinationFolderFullNames[i]))
-                destinationFolderFullNames[i] = null;
+            if (!Directory.Exists(fields.destinationFolderFullNames[i]))
+                fields.destinationFolderFullNames[i] = null;
         }
     }
 
@@ -101,18 +113,18 @@ public class ConfigHandler : MonoBehaviour
 
     public string GetFolderPathByFolderNumber(int folderNumber)
     {
-        if (folderNumber < 0 || folderNumber >= destinationFolderFullNames.Length)
+        if (folderNumber < 0 || folderNumber >= fields.destinationFolderFullNames.Length)
             return null;
 
-        return destinationFolderFullNames[folderNumber];
+        return fields.destinationFolderFullNames[folderNumber];
     }
 
     public bool SetFolderPathByFolderNumber(int folderNumber, string folderPath)
     {
-        if (folderNumber < 0 || folderNumber >= destinationFolderFullNames.Length)
+        if (folderNumber < 0 || folderNumber >= fields.destinationFolderFullNames.Length)
             return false;
 
-        destinationFolderFullNames[folderNumber] = folderPath;
+        fields.destinationFolderFullNames[folderNumber] = folderPath;
         return true;
     }
 
@@ -122,16 +134,17 @@ public class ConfigHandler : MonoBehaviour
             return null;
 
         var folderNumber = keyCodeToFolderNumberMap[keyCode];
-        var destinationFolderPath = destinationFolderFullNames[folderNumber];
+        var destinationFolderPath = fields.destinationFolderFullNames[folderNumber];
 
         return destinationFolderPath;
     }
 
-    public bool SetFoldersUiNames(List<string> list)
+    public bool SetFoldersUiNames(List<VisualElement> list)
     {
         try
         {
-            destinationFolderUiNames = list.ToArray();
+            List<string> elementNames = list.Select(element => element.name).ToList();
+            destinationFolderUiNames = elementNames.ToArray();
 
             var lastElement = destinationFolderUiNames[destinationFolderUiNames.Length - 1];
             for (int i = destinationFolderUiNames.Length - 1; i > 0; i--)
@@ -153,7 +166,7 @@ public class ConfigHandler : MonoBehaviour
 
     public string GetFolderUiNameByFolderPath(string folderPath)
     {
-        return destinationFolderUiNames[Array.IndexOf(destinationFolderFullNames, folderPath)];
+        return destinationFolderUiNames[Array.IndexOf(fields.destinationFolderFullNames, folderPath)];
     }
 
     public string GetFolderUiNameByKeyCode(int keyCode)
@@ -164,7 +177,7 @@ public class ConfigHandler : MonoBehaviour
 
     public void ResetAllData()
     {
-        sourceFolderFullName = null;
-        destinationFolderFullNames = new string[10];
+        fields.sourceFolderFullName = null;
+        fields.destinationFolderFullNames = new string[10];
     }
 }

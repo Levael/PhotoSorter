@@ -9,7 +9,7 @@ public class LanguageHandler : MonoBehaviour
     private ConfigHandler configHandler;
     private UiHandler uiHandler;
 
-    private LanguageHandler_Fields languageHandler_Fields;
+    public LanguageHandler_Fields languageHandler_Fields;
     private Dictionary<string, string> pathsToLangFiles;
 
     public Dictionary<string, string> uiTextElementNameToFieldNameMap;
@@ -63,7 +63,7 @@ public class LanguageHandler : MonoBehaviour
 
     void Start()
     {
-        Load(configHandler.chosenLanguage);
+        Load(configHandler.fields.chosenLanguage);
         Apply();
     }
 
@@ -71,7 +71,7 @@ public class LanguageHandler : MonoBehaviour
     // PUBLIC
     public void ChangeLanguage(string language)
     {
-        configHandler.chosenLanguage = language;
+        configHandler.fields.chosenLanguage = language;
         Load(language);
         Apply();
     }
@@ -97,13 +97,13 @@ public class LanguageHandler : MonoBehaviour
         uiHandler.FillUiWithDataFromLanguage();
 
 
-        if (configHandler.chosenLanguage == "ru")
+        if (configHandler.fields.chosenLanguage == "ru")
         {
             uiRoot.Q<TextElement>("ru-lang-btn").AddToClassList("chosenOption");
             uiRoot.Q<TextElement>("en-lang-btn").RemoveFromClassList("chosenOption");
         }
 
-        if (configHandler.chosenLanguage == "en")
+        if (configHandler.fields.chosenLanguage == "en")
         {
             uiRoot.Q<TextElement>("en-lang-btn").AddToClassList("chosenOption");
             uiRoot.Q<TextElement>("ru-lang-btn").RemoveFromClassList("chosenOption");

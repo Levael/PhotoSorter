@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,6 +10,14 @@ using UnityEngine.UIElements;
 
 public class UiHandler : MonoBehaviour
 {
+    private Main main;
+    private LanguageHandler languageHandler;
+    private ThemeHandler themeHandler;
+    private ConfigHandler configHandler;
+    private ImagesHandler imagesHandler;
+
+
+
     public VisualElement root;
 
     public VisualElement imagesContainer;
@@ -30,7 +37,7 @@ public class UiHandler : MonoBehaviour
     private VisualElement closeAppBtn;
 
     private VisualElement sourceFolder;
-    private List<VisualElement> destinationFolders;
+    public List<VisualElement> destinationFolders;
 
     private VisualElement console;
     private TextElement consoleWarning_outOfFiles;
@@ -42,6 +49,13 @@ public class UiHandler : MonoBehaviour
 
     void Awake()
     {
+        main = GetComponent<Main>();
+        languageHandler = GetComponent<LanguageHandler>();
+        themeHandler = GetComponent<ThemeHandler>();
+        configHandler = GetComponent<ConfigHandler>();
+        imagesHandler = GetComponent<ImagesHandler>();
+
+
         // ROOT
         root = GetComponent<UIDocument>().rootVisualElement;
         root.focusable = true;
@@ -81,19 +95,25 @@ public class UiHandler : MonoBehaviour
         // EVENT LISTENERS
         closeAppBtn.RegisterCallback<ClickEvent>(evt => { Application.Quit(); });
 
-        chooseLangBtn_ru.RegisterCallback<ClickEvent>(evt => { ChangeLanguage("ru"); });
-        chooseLangBtn_en.RegisterCallback<ClickEvent>(evt => { ChangeLanguage("en"); });
-        chooseThemeBtn_dark.RegisterCallback<ClickEvent>(evt => { SetTheme("dark"); });
-        chooseThemeBtn_light.RegisterCallback<ClickEvent>(evt => { SetTheme("light"); });
+        chooseLangBtn_ru.RegisterCallback<ClickEvent>(evt => { languageHandler.ChangeLanguage("ru"); });
+        chooseLangBtn_en.RegisterCallback<ClickEvent>(evt => { languageHandler.ChangeLanguage("en"); });
+        chooseThemeBtn_dark.RegisterCallback<ClickEvent>(evt => { themeHandler.SetTheme("dark"); });
+        chooseThemeBtn_light.RegisterCallback<ClickEvent>(evt => { themeHandler.SetTheme("light"); });
         clearChoicesBtn.RegisterCallback<ClickEvent>(evt => { ClearChoices(); });
 
-        sourceFolder.RegisterCallback<ClickEvent>(ProcessChooseSourceFolderCommand);
-        destinationFolders.ForEach(element => { element.RegisterCallback<ClickEvent>(ProcessChooseDestinationFolderCommand); });
+        sourceFolder.RegisterCallback<ClickEvent>(main.ProcessChooseSourceFolderCommand);
+        destinationFolders.ForEach(element => { element.RegisterCallback<ClickEvent>(main.ProcessChooseDestinationFolderCommand); });
     }
 
     void Start()
     {
-        
+        FillUiWithDataFromConfig();
+        ClearConsole();
+
+        if (configHandler.fields.sourceFolderFullName != null)
+        {
+            root.RegisterCallback<GeometryChangedEvent>(CallOnceWhenUiIsReady);   // show image as soon as UI is ready
+        }
     }
 
 
@@ -111,21 +131,18 @@ public class UiHandler : MonoBehaviour
     {
         configHandler.ResetAllData();
         FillUiWithDataFromConfig();
-        ClearImage();
+        imagesHandler.ClearImageAndItsData();
     }
 
-    void TriggerFlash(string folderUiName, string className)
+    public void FlashFolderNumber(string folderUiName, string className)
     {
         var folderBtn = root.Q<VisualElement>(folderUiName);
         var target = folderBtn.Q<TextElement>(className: "folder-number");
 
-        // so dirty...
-        //Debug.Log($"folderUiName: {folderUiName}\nfolderBtn: {folderBtn}\n");
-
-        StartCoroutine(FlashGreenRoutine(target, className));
+        StartCoroutine(FlashCoroutine(target, className));
     }
 
-    IEnumerator FlashGreenRoutine(VisualElement target, string className)
+    IEnumerator FlashCoroutine(VisualElement target, string className)
     {
         // className: "warning-status", "good-status" or "bad-status"
 
@@ -136,19 +153,19 @@ public class UiHandler : MonoBehaviour
 
     public void PrintWarning_OutOfFiles()
     {
-        ClearConsole(console);
+        ClearConsole();
         console.Q<TextElement>("out-of-files-warning-message").RemoveFromClassList("hiddenElement");
     }
 
     public void PrintError_OpenFile()
     {
-        ClearConsole(console);
+        ClearConsole();
         console.Q<TextElement>("error-while-opening-file-message").RemoveFromClassList("hiddenElement");
     }
 
     public void PrintError_MoveFile()
     {
-        ClearConsole(console);
+        ClearConsole();
         console.Q<TextElement>("error-while-moving-file-message").RemoveFromClassList("hiddenElement");
     }
 
@@ -161,10 +178,10 @@ public class UiHandler : MonoBehaviour
         }
     }
 
-    private void CallOnceWhenUiIsReady(GeometryChangedEvent evt)
+    public void CallOnceWhenUiIsReady(GeometryChangedEvent evt)
     {
-        DisplayNextImage();
-        uiRoot.UnregisterCallback<GeometryChangedEvent>(CallOnceWhenUiIsReady);
+        imagesHandler.ShowNextImage();
+        root.UnregisterCallback<GeometryChangedEvent>(CallOnceWhenUiIsReady);
     }
 
 
@@ -177,7 +194,7 @@ public class UiHandler : MonoBehaviour
             var btnFolderPathElem = btnFolderElem.Q<TextElement>(className: "folder-path-without-name");
             var btnFolderNameElem = btnFolderElem.Q<TextElement>(className: "folder-name");
 
-            var folderFullPath = configHandler.sourceFolderFullName;
+            var folderFullPath = configHandler.fields.sourceFolderFullName;
 
 
             if (!String.IsNullOrEmpty(folderFullPath))
@@ -194,7 +211,7 @@ public class UiHandler : MonoBehaviour
 
 
         // destination folders
-        foreach (var folderBtn in foldersBtns)
+        foreach (var folderBtn in destinationFolders)
         {
             var btnFolderNumberElem = folderBtn.Q<TextElement>(className: "folder-number");
             var btnFolderPathElem = folderBtn.Q<TextElement>(className: "folder-path-without-name");
@@ -235,15 +252,15 @@ public class UiHandler : MonoBehaviour
         string fieldName = dataPair.Value;
         string uiElementKey = dataPair.Key;
 
-        var fieldInfo = typeof(LanguageHandler).GetField(fieldName);
+        var fieldInfo = typeof(LanguageHandler_Fields).GetField(fieldName);
         if (fieldInfo == null)
         {
             Debug.Log($"Field not found for name: {fieldName}");
             return;
         }
 
-        string localizedValue = fieldInfo.GetValue(languageHandler) as string;
-        var uiElement = uiRoot.Q<VisualElement>(uiElementKey);
+        string localizedValue = fieldInfo.GetValue(languageHandler.languageHandler_Fields) as string;
+        var uiElement = root.Q<VisualElement>(uiElementKey);
         if (uiElement == null)
         {
             Debug.Log($"UI element not found for key: {uiElementKey}");
@@ -262,37 +279,3 @@ public class UiHandler : MonoBehaviour
         }
     }
 }
-
-
-
-
-
-
-
-
-
-/*
-         var folderNumber = int.Parse(element.Q<TextElement>(className: "folder-number").text);
-            configHandler.SetFolderUiNameByFolderNumber(folderNumber, element.name);
-         */
-
-/*private void PrintWarning_OutOfFiles()
-{
-    ClearConsole(console);
-    console.Q<TextElement>("out-of-files-warning-message").RemoveFromClassList("hiddenElement");
-}
-
-private void PrintError_OpenFile()
-{
-    ClearConsole(console);
-    console.Q<TextElement>("error-while-opening-file-message").RemoveFromClassList("hiddenElement");
-}
-
-private void PrintError_MoveFile()
-{
-    ClearConsole(console);
-    console.Q<TextElement>("error-while-moving-file-message").RemoveFromClassList("hiddenElement");
-}*/
-
-
-// links to images raleted ui elements

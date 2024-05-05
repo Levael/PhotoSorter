@@ -33,14 +33,14 @@ public class ThemeHandler : MonoBehaviour
 
     void Start()
     {
-        Apply(configHandler.chosenTheme);
+        Apply(configHandler.fields.chosenTheme);
     }
 
 
     // PUBLIC
     public void SetTheme(string theme)
     {
-        configHandler.chosenTheme = theme;
+        configHandler.fields.chosenTheme = theme;
         Apply(theme);
     }
 
