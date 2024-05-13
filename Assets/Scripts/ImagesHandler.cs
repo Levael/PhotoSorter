@@ -1,4 +1,5 @@
-﻿using System;
+﻿using B83.Image.BMP;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -90,7 +91,7 @@ public class ImagesHandler : MonoBehaviour
     {
         if (String.IsNullOrEmpty(folderPath)) return;
 
-        string[] imageExtensions = new string[] { "*.jpg", "*.jpeg", "*.png" };    // "*.bmp", "*.svg", "*.gif" 
+        string[] imageExtensions = new string[] { "*.jpg", "*.jpeg", "*.png", "*.bmp" };    // "*.svg", "*.gif" 
         imagesBlob = new Queue<string>(imageExtensions.SelectMany(ext => Directory.GetFiles(folderPath, ext)).Take(imagesBlobSize));
     }
 
@@ -126,7 +127,7 @@ public class ImagesHandler : MonoBehaviour
             name: Path.GetFileNameWithoutExtension(fileFullPath),
             path: Path.GetDirectoryName(fileFullPath),
             size: $"{(new FileInfo(fileFullPath).Length / 1024.0 / 1024.0):F2} MB",
-            extension: Path.GetExtension(fileFullPath)
+            extension: Path.GetExtension(fileFullPath).Substring(1)     // deletes a dot
         );
 
         // clear any warning/error message because all right
@@ -216,15 +217,21 @@ public class ImagesHandler : MonoBehaviour
 
     private Texture2D LoadTextureFromFile(string filePath)
     {
-        byte[] fileData = File.ReadAllBytes(filePath);
-        Texture2D texture = new Texture2D(2, 2);
-        if (texture.LoadImage(fileData))
+        if (Path.GetExtension(filePath) == ".bmp")
         {
+            Texture2D texture = null;
+            BMPLoader bmpLoader = new BMPLoader();
+            bmpLoader.ForceAlphaReadWhenPossible = true;
+            BMPImage bmpImg = bmpLoader.LoadBMP(filePath);
+            texture = bmpImg.ToTexture2D();
             return texture;
         }
         else
         {
-            throw new Exception("Error while 'LoadTextureFromFile'");
+            byte[] fileData = File.ReadAllBytes(filePath);
+            Texture2D texture = new Texture2D(2, 2);
+            texture.LoadImage(fileData);
+            return texture;
         }
     }
 }

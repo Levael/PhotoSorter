@@ -331,7 +331,7 @@ TextElement {
     color: var(--warning-status-color);
 }
 
-#error-while-opening-file-message, #error-while-moving-file-message {
+#error-while-opening-file-message, #error-while-moving-file-message, #error-while-moving-dublicated-file-message {
     color: var(--bad-status-color);
 }
 

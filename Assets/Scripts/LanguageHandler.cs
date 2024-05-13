@@ -40,10 +40,12 @@ public class LanguageHandler : MonoBehaviour
             {"file-name-info-label", "fileNameLabel"},
             {"file-path-info-label", "filePathLabel"},
             {"file-size-info-label", "fileSizeLabel"},
+            {"file-type-info-label", "fileTypeLabel"},
 
             {"out-of-files-warning-message", "noFilesWarning"},
             {"error-while-opening-file-message", "failedToLoadFileError"},
             {"error-while-moving-file-message", "failedToMoveFileError"},
+            {"error-while-moving-dublicated-file-message", "suchFileAlreadyExistsError"},
         };
 
         uiTooltipElementNameToFieldNameMap = new()
@@ -131,6 +133,7 @@ public class LanguageHandler_Fields
     public string noFilesWarning;
     public string failedToLoadFileError;
     public string failedToMoveFileError;
+    public string suchFileAlreadyExistsError;
 
     public string darkThemeBtnTooltip;
     public string lightThemeBtnTooltip;
@@ -140,4 +143,5 @@ public class LanguageHandler_Fields
     public string fileNameLabel;
     public string filePathLabel;
     public string fileSizeLabel;
+    public string fileTypeLabel;
 }

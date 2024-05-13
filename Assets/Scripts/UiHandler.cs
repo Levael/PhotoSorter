@@ -169,6 +169,12 @@ public class UiHandler : MonoBehaviour
         console.Q<TextElement>("error-while-moving-file-message").RemoveFromClassList("hiddenElement");
     }
 
+    public void PrintError_MoveDuplicatedFile()
+    {
+        ClearConsole();
+        console.Q<TextElement>("error-while-moving-dublicated-file-message").RemoveFromClassList("hiddenElement");
+    }
+
 
     public void ClearConsole()
     {

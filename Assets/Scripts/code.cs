@@ -211,7 +211,7 @@ public class Main : MonoBehaviour
             return;
         }
 
-
+        // todo: why not using 'FilesHandler'?
         File.Move(lastFileDestinationFullPath, lastFileOriginFullPath);
         imagesHandler.ShowPreviousImage();
 
@@ -233,9 +233,6 @@ public class Main : MonoBehaviour
 
             currentFileDestinationFullPath = Path.Combine(destinationFolderPath, Path.GetFileName(currentFileOriginFullPath));
 
-
-            //Debug.Log($"Moving from: {currentFileOriginFullPath}");
-            //Debug.Log($"Moving to: {currentFileDestinationFullPath}");
             FilesHandler.MoveFile(currentFileOriginFullPath, currentFileDestinationFullPath);
 
             lastFileOriginFullPath = currentFileOriginFullPath;
@@ -247,7 +244,16 @@ public class Main : MonoBehaviour
         catch (Exception ex)
         {
             uiHandler.FlashFolderNumber(configHandler.GetFolderUiNameByKeyCode(keyCode), "bad-status");
-            Debug.LogError($"Error while moving file from 'ProcessMoveFileCommand': {ex}");
+
+            if (ex.Message == "'destinationFileFullName' already exists")
+            {
+                uiHandler.PrintError_MoveDuplicatedFile();
+            }
+            else
+            {
+                uiHandler.PrintError_MoveFile();
+                //Debug.LogError($"Error while moving file from 'ProcessMoveFileCommand': {ex}");
+            }
         }
     }
 

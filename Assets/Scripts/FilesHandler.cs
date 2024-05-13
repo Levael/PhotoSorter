@@ -17,6 +17,11 @@ public static class FilesHandler
             throw new Exception("'destinationFileFullName' is null or empty");
         }
 
+        if (File.Exists(destinationFileFullName))
+        {
+            throw new Exception("'destinationFileFullName' already exists");
+        }
+
 
         try
         {

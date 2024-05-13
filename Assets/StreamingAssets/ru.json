@@ -13,11 +13,13 @@
   "noFilesWarning": "В этой папке (больше) нет файлов",
   "failedToLoadFileError": "Не удалось открыть файл",
   "failedToMoveFileError": "Не удалось переместить файл",
+  "suchFileAlreadyExistsError": "Файл с таким именем уже находится в папке назначения",
   "darkThemeBtnTooltip": "тёмная тема",
   "lightThemeBtnTooltip": "светлая тема",
   "ruLangBtnTooltip": "русский язык",
   "enLangBtnTooltip": "english language",
   "fileNameLabel": "имя",
   "filePathLabel": "путь",
-  "fileSizeLabel": "размер"
+  "fileSizeLabel": "размер",
+  "fileTypeLabel": "тип"
 }
